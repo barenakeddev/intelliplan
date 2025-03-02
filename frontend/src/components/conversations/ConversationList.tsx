@@ -7,9 +7,13 @@ import ConversationItem from './ConversationItem';
 
 interface ConversationListProps {
   activeConversationId?: string;
+  onSelectConversation: (conversationId: string) => void;
 }
 
-const ConversationList: React.FC<ConversationListProps> = ({ activeConversationId }) => {
+const ConversationList: React.FC<ConversationListProps> = ({ 
+  activeConversationId,
+  onSelectConversation
+}) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -102,7 +106,7 @@ const ConversationList: React.FC<ConversationListProps> = ({ activeConversationI
   }, [user]);
 
   const handleSelectConversation = (id: string) => {
-    navigate(`/event/${id}`);
+    onSelectConversation(id);
   };
 
   return (

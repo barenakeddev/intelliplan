@@ -5,6 +5,7 @@ import TabNavigation, { TabType, FloorplanSubTab } from '../components/layout/Ta
 import RFPView from '../components/rfp/RFPView';
 import FloorPlanEditor from '../components/floorplan/FloorPlanEditor';
 import ConversationList from '../components/conversations/ConversationList';
+import ChatInterface from '../components/chat/ChatInterface';
 
 const EventDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +14,8 @@ const EventDetails: React.FC = () => {
   const [eventName, setEventName] = useState<string>('EVENT NAME');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [rfpData, setRfpData] = useState<any>(null);
+  const [showChat, setShowChat] = useState<boolean>(false);
+  const [activeConversationId, setActiveConversationId] = useState<string | undefined>(id);
 
   useEffect(() => {
     // In a real app, we would fetch the event details from the API
@@ -30,6 +33,14 @@ const EventDetails: React.FC = () => {
         setRfpData({
           rfp_text: 'This is a sample RFP for ' + eventName
         });
+
+        // If we have an ID, show the chat interface
+        if (id && id !== 'new') {
+          setShowChat(true);
+          setActiveConversationId(id);
+        } else {
+          setShowChat(false);
+        }
       } catch (error) {
         console.error('Error fetching event details:', error);
       } finally {
@@ -43,6 +54,15 @@ const EventDetails: React.FC = () => {
   const handleSaveRfp = (rfpText: string) => {
     console.log('Saving RFP:', rfpText);
     // In a real app, we would save this to the API
+  };
+
+  const handleConversationSelect = (conversationId: string) => {
+    setActiveConversationId(conversationId);
+    setShowChat(true);
+  };
+
+  const handleBackToConversations = () => {
+    setShowChat(false);
   };
 
   const renderTabContent = () => {
@@ -65,7 +85,18 @@ const EventDetails: React.FC = () => {
   return (
     <div className="event-details-container">
       <div className="event-details-content">
-        <ConversationList activeConversationId={id} />
+        {showChat ? (
+          <ChatInterface 
+            conversationId={activeConversationId || ''}
+            eventName={eventName}
+            onBackToConversations={handleBackToConversations}
+          />
+        ) : (
+          <ConversationList 
+            activeConversationId={activeConversationId} 
+            onSelectConversation={handleConversationSelect}
+          />
+        )}
         <div className="event-details-main">
           <TabNavigation 
             activeTab={activeTab} 
