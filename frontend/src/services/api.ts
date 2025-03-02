@@ -49,6 +49,12 @@ export const generateRFP = async (parsedData: ParsedEventData, eventId?: string,
   return response.data;
 };
 
+// AI Prompt for RFP modification
+export const modifyRFPWithAI = async (rfpText: string, prompt: string, eventId?: string, userId?: string, rfpId?: string) => {
+  const response = await api.post('/modifyRFP', { rfpText, prompt, eventId, userId, rfpId });
+  return response.data.rfp;
+};
+
 // Floor Plan API
 export const generateFloorPlan = async (parsedData: ParsedEventData, eventId?: string, userId?: string) => {
   const response = await api.post('/generateFloorPlan', { parsedData, eventId, userId });

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateRFP = generateRFP;
+exports.modifyRFP = exports.generateRFP = void 0;
 const openai_1 = __importDefault(require("openai"));
 const dotenv_1 = __importDefault(require("dotenv"));
 // Load environment variables
@@ -135,3 +135,50 @@ For questions or to submit your proposal, please contact:
 Thank you for your consideration. We look forward to reviewing your proposal.
 `;
 }
+/**
+ * Modifies an existing RFP based on user prompt
+ * @param rfpText Current RFP text
+ * @param prompt User's modification prompt
+ * @returns Modified RFP text
+ */
+function modifyRFP(rfpText, prompt) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            // Check if OpenAI API key is available
+            if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.includes('your_openai_api_key')) {
+                console.warn('OpenAI API key not configured. Cannot modify RFP.');
+                return rfpText;
+            }
+            
+            const response = yield openai.chat.completions.create({
+                model: "gpt-4o",
+                messages: [
+                    {
+                        role: "system",
+                        content: `You are an expert event planner who creates professional Request for Proposals (RFPs) for venues.
+                        You are tasked with modifying an existing RFP based on the user's instructions.
+                        Maintain the professional tone and format of the original RFP.
+                        Keep the same Markdown formatting with headers and sections.
+                        Only make changes that align with the user's prompt.`
+                    },
+                    {
+                        role: "user",
+                        content: `Here is the current RFP:
+                        
+                        ${rfpText}
+                        
+                        Please modify this RFP according to the following instructions:
+                        
+                        ${prompt}`
+                    }
+                ]
+            });
+            
+            return response.choices[0].message.content || rfpText;
+        } catch (error) {
+            console.error('Error modifying RFP:', error);
+            return rfpText;
+        }
+    });
+}
+exports.modifyRFP = modifyRFP;

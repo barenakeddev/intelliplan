@@ -16,6 +16,11 @@ router.post('/parseDescription', (req, res, next) => {
 router.post('/generateRFP', (req, res, next) => {
     (0, rfpController_1.generateRFPController)(req, res).catch(next);
 });
+
+router.post('/modifyRFP', (req, res, next) => {
+    (0, rfpController_1.modifyRFPController)(req, res).catch(next);
+});
+
 // Floor Plan routes
 router.post('/generateFloorPlan', (req, res, next) => {
     (0, floorPlanController_1.generateFloorPlanController)(req, res).catch(next);

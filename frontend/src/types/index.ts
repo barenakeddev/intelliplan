@@ -94,4 +94,10 @@ export interface FloorPlanLayout {
 export interface User {
   id: string;
   email: string;
+}
+
+export interface RFPSection {
+  id: string;
+  title: string;
+  content: string;
 } 
