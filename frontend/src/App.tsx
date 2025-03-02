@@ -5,38 +5,44 @@ import './styles/global.css';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import EventDetails from './pages/EventDetails';
-import { AuthProvider } from './context/AuthContext';
+import Login from './components/auth/Login';
+import Register from './components/auth/Register';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { FloorPlanProvider } from './context/FloorPlanContext';
-
-// Mock authentication for development
-const isAuthenticated = () => {
-  return localStorage.getItem('authenticated') === 'true';
-};
 
 // Protected route component
 const ProtectedRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
-  return isAuthenticated() ? <>{element}</> : <Navigate to="/" replace />;
+  const { user } = useAuth();
+  return user ? <>{element}</> : <Navigate to="/login" replace />;
 };
+
+function AppRoutes() {
+  return (
+    <div className="app-container">
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route 
+          path="/dashboard" 
+          element={<ProtectedRoute element={<Dashboard />} />} 
+        />
+        <Route 
+          path="/event/:id" 
+          element={<ProtectedRoute element={<EventDetails />} />} 
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
+  );
+}
 
 function App() {
   return (
     <Router>
       <AuthProvider>
         <FloorPlanProvider>
-          <div className="app-container">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route 
-                path="/dashboard" 
-                element={<ProtectedRoute element={<Dashboard />} />} 
-              />
-              <Route 
-                path="/event/:id" 
-                element={<ProtectedRoute element={<EventDetails />} />} 
-              />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </div>
+          <AppRoutes />
         </FloorPlanProvider>
       </AuthProvider>
     </Router>
