@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 export type TabType = 'rfp' | 'floorplan' | 'vendors';
 export type FloorplanSubTab = 'tables' | 'seating' | 'staging' | 'av';
@@ -30,8 +30,8 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
 
   return (
     <div className="tab-navigation-container">
-      <div className="event-name">{eventName}</div>
       <div className="tabs">
+        <div className="tab-spacer"></div>
         <div
           className={`tab ${activeTab === 'rfp' ? 'active' : ''}`}
           onClick={() => handleTabClick('rfp')}
@@ -50,6 +50,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
         >
           Vendors
         </div>
+        <div className="tab-spacer"></div>
       </div>
       
       {activeTab === 'floorplan' && (
@@ -58,28 +59,30 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
             className={`subtab ${activeSubTab === 'tables' ? 'active' : ''}`}
             onClick={() => handleSubTabClick('tables')}
           >
-            Table Types
+            Table t...
           </div>
           <div
             className={`subtab ${activeSubTab === 'seating' ? 'active' : ''}`}
             onClick={() => handleSubTabClick('seating')}
           >
-            Seating
+            Seatin...
           </div>
           <div
             className={`subtab ${activeSubTab === 'staging' ? 'active' : ''}`}
             onClick={() => handleSubTabClick('staging')}
           >
-            Staging
+            Stagin...
           </div>
           <div
             className={`subtab ${activeSubTab === 'av' ? 'active' : ''}`}
             onClick={() => handleSubTabClick('av')}
           >
-            AV Equipment
+            AV...
           </div>
         </div>
       )}
+      
+      <div className="event-name">{eventName}</div>
     </div>
   );
 };
