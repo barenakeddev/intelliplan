@@ -113,20 +113,21 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #f9f9f9;
+  overflow: hidden;
 }
 
 .event-details-content {
   display: flex;
   flex: 1;
-  height: 100vh;
+  height: calc(100vh - 60px);
+  overflow: hidden;
 }
 
 .event-details-main {
   flex: 1;
-  padding: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .event-name {
@@ -139,10 +140,8 @@ body {
 
 .tab-content {
   flex: 1;
-  background-color: var(--background-color);
-  border-radius: 0;
-  padding: 0;
-  margin-top: 0;
+  padding: 1rem;
+  overflow-y: auto;
 }
 
 /* Conversations */
@@ -447,4 +446,201 @@ body {
   color: var(--text-secondary);
   text-align: center;
   padding: 2rem;
+}
+
+/* Chat Interface */
+.chat-interface {
+  width: 25%;
+  background-color: var(--background-color);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100vh;
+  position: relative;
+}
+
+.chat-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.25rem 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.back-button:hover {
+  color: var(--primary-color);
+}
+
+.chat-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin: 0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-history {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 120px);
+  min-height: 200px;
+}
+
+.chat-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 1rem;
+}
+
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.chat-message {
+  max-width: 80%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  position: relative;
+}
+
+.user-message {
+  align-self: flex-end;
+  background-color: var(--primary-light);
+  color: #fff;
+  border-bottom-right-radius: 0.25rem;
+}
+
+.system-message {
+  align-self: flex-start;
+  background-color: #f0f0f0;
+  color: var(--text-primary);
+  border-bottom-left-radius: 0.25rem;
+}
+
+.message-content {
+  margin-bottom: 0.25rem;
+}
+
+.message-timestamp {
+  font-size: 0.7rem;
+  color: rgba(0, 0, 0, 0.5);
+  text-align: right;
+}
+
+.user-message .message-timestamp {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.loading-message {
+  padding: 0.5rem 1rem;
+}
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.typing-indicator span {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: #aaa;
+  border-radius: 50%;
+  animation: typing 1.4s infinite ease-in-out both;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+.chat-input-container {
+  padding: 1rem;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--background-color);
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+}
+
+.chat-input-container form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 1.5rem;
+  font-size: 0.9rem;
+  resize: none;
+  outline: none;
+  background-color: #f5f5f5;
+}
+
+.chat-input:focus {
+  border-color: var(--primary-color);
+}
+
+.chat-submit-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 1.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-submit-button:hover {
+  background-color: var(--primary-dark);
+}
+
+.chat-submit-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 } 
