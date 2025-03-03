@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { RFP } from '../../types';
+import Markdown from 'markdown-to-jsx';
 
 interface RFPViewProps {
   rfp: RFP | null;
@@ -9,10 +10,39 @@ interface RFPViewProps {
 
 const RFPView: React.FC<RFPViewProps> = ({ rfp, onSave, loading }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedText, setEditedText] = useState(rfp?.rfp_text || '');
+  const [editedText, setEditedText] = useState(rfp?.rfp_text || getDefaultRFPTemplate());
+  const [showUpdateNotification, setShowUpdateNotification] = useState(false);
+  const previousRfpTextRef = useRef<string | null>(null);
+
+  // Check for updates to the RFP
+  useEffect(() => {
+    if (rfp?.rfp_text && previousRfpTextRef.current && rfp.rfp_text !== previousRfpTextRef.current) {
+      // RFP has been updated
+      setShowUpdateNotification(true);
+      
+      // Hide notification after 5 seconds
+      const timer = setTimeout(() => {
+        setShowUpdateNotification(false);
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+    
+    // Store the current RFP text for future comparison
+    if (rfp?.rfp_text) {
+      previousRfpTextRef.current = rfp.rfp_text;
+    }
+  }, [rfp?.rfp_text]);
+
+  // Update edited text when RFP changes
+  useEffect(() => {
+    if (!isEditing) {
+      setEditedText(rfp?.rfp_text || getDefaultRFPTemplate());
+    }
+  }, [rfp?.rfp_text, isEditing]);
 
   const handleEdit = () => {
-    setEditedText(rfp?.rfp_text || '');
+    setEditedText(rfp?.rfp_text || getDefaultRFPTemplate());
     setIsEditing(true);
   };
 
@@ -22,16 +52,52 @@ const RFPView: React.FC<RFPViewProps> = ({ rfp, onSave, loading }) => {
   };
 
   const handleCancel = () => {
-    setEditedText(rfp?.rfp_text || '');
+    setEditedText(rfp?.rfp_text || getDefaultRFPTemplate());
     setIsEditing(false);
   };
 
-  if (!rfp && !loading) {
-    return (
-      <div className="rfp-empty-state">
-        <p>No RFP generated yet. Please generate a floor plan first.</p>
-      </div>
-    );
+  // Function to get the default RFP template
+  function getDefaultRFPTemplate() {
+    return `# Request for Proposal (RFP)
+
+## 1. Event Overview
+- **Event Name:** [Insert Event Name]
+- **Event Host Organization:** [Insert Host Organization]
+- **Event Organizer:** (if different from Host Organization) [Insert Organizer]
+- **Event Type:** [Conference, Meeting, Exhibition, etc.]
+- **Event Description:**  
+  *Provide a brief overview of the event objectives, target audience, and overall theme.*
+
+## 2. Event Dates & Flexibility
+- **Preferred Date:** [Insert Date]
+- **Alternative Date(s):** [Insert Date(s)]
+- **Dates Flexible?** (Yes/No): [Specify]
+
+## 3. Attendance
+- **Estimated Number of Attendees:** [Insert Number]
+
+## 4. Venue Requirements
+Please provide detailed information for each room or function space required. Include any accessibility features (e.g., ADA compliance, wheelchair access):
+
+| Room/Function        | Space Required (sqft) | Seating Arrangement (e.g., Theatre, Classroom, U-Shape) | Expected Number of Attendees | Accessibility Features |
+| -------------------- | --------------------- | --------------------------------------------------------- | ---------------------------- | ------------------------ |
+| *Example: Main Hall* | [Insert sqft]         | [Insert arrangement]                                      | [Insert number]              | [Insert details]         |
+| *Example: Breakout 1*| [Insert sqft]         | [Insert arrangement]                                      | [Insert number]              | [Insert details]         |
+
+## 5. Catering Requirements
+- **Meal Periods:** [e.g., Breakfast, Lunch, Coffee Breaks]
+- **Service Style:** [e.g., Plated, Buffet, Family-Style]
+
+## 6. Audio/Visual Requirements
+- **Equipment Needed:** (e.g., Projectors, Screens, Sound System, Microphones)
+- **Additional Technical Needs:** [Any other A/V or technical support requirements]
+
+## 7. Contact Information
+- **Contact Name:** [Your Name]
+- **Phone:** [Your Contact Number]
+- **Email:** [Your Email Address]
+- **Address:** [Your Business Address]
+`;
   }
 
   if (loading) {
@@ -41,6 +107,8 @@ const RFPView: React.FC<RFPViewProps> = ({ rfp, onSave, loading }) => {
       </div>
     );
   }
+
+  const displayText = rfp?.rfp_text || getDefaultRFPTemplate();
 
   return (
     <div className="rfp-container">
@@ -63,6 +131,13 @@ const RFPView: React.FC<RFPViewProps> = ({ rfp, onSave, loading }) => {
           )}
         </div>
       </div>
+      
+      {showUpdateNotification && (
+        <div className="rfp-update-notification">
+          <p>The RFP has been updated via chat. Review the changes below.</p>
+        </div>
+      )}
+      
       <div className="rfp-content">
         {isEditing ? (
           <textarea
@@ -73,12 +148,9 @@ const RFPView: React.FC<RFPViewProps> = ({ rfp, onSave, loading }) => {
           />
         ) : (
           <div className="rfp-text">
-            {rfp?.rfp_text.split('\n').map((line, index) => (
-              <React.Fragment key={index}>
-                {line}
-                <br />
-              </React.Fragment>
-            ))}
+            <Markdown>
+              {displayText}
+            </Markdown>
           </div>
         )}
       </div>
