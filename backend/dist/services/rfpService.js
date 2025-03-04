@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateRFP = generateRFP;
+exports.modifyRFPWithAI = modifyRFPWithAI;
 const openai_1 = __importDefault(require("openai"));
 const dotenv_1 = __importDefault(require("dotenv"));
 // Load environment variables
@@ -41,15 +42,42 @@ function generateRFP(parsedData) {
                         role: "system",
                         content: `You are an expert event planner who creates professional Request for Proposals (RFPs) for venues.
           Create a detailed and professional RFP based on the event details provided.
-          The RFP should include:
+          The RFP should follow this exact format:
           
-          1. Introduction with event overview
-          2. Event details (date, time, number of guests)
-          3. Venue requirements (size, layout, seating arrangement)
-          4. Catering requirements
-          5. AV and technical requirements
-          6. Budget considerations
-          7. Contact information (use placeholder)
+          # Request for Proposal (RFP)
+
+          ## 1. Event Overview
+          - Event Name
+          - Event Host Organization
+          - Event Organizer (if different from Host Organization)
+          - Event Type
+          - Event Description
+          
+          ## 2. Event Dates & Flexibility
+          - Preferred Date
+          - Alternative Date(s)
+          - Dates Flexible? (Yes/No)
+          
+          ## 3. Attendance
+          - Estimated Number of Attendees
+          
+          ## 4. Venue Requirements
+          Include a table with these exact columns:
+          | Room/Function | Space Required (sqft) | Seating Arrangement | Expected Number of Attendees | Accessibility Features |
+          
+          ## 5. Catering Requirements
+          - Meal Periods
+          - Service Style
+          
+          ## 6. Audio/Visual Requirements
+          - Equipment Needed
+          - Additional Technical Needs
+          
+          ## 7. Contact Information
+          - Contact Name
+          - Phone
+          - Email
+          - Address
           
           Format the RFP professionally with clear sections and headings.`
                     },
@@ -75,63 +103,131 @@ function generateRFP(parsedData) {
     });
 }
 /**
+ * Modifies an existing RFP based on a user prompt
+ * @param currentRFP The current RFP text
+ * @param prompt The user's modification prompt
+ * @returns Modified RFP text
+ */
+function modifyRFPWithAI(currentRFP, prompt) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            // Check if OpenAI API key is available
+            if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.includes('your_openai_api_key')) {
+                console.warn('OpenAI API key not configured. Cannot modify RFP with AI.');
+                return currentRFP;
+            }
+            const response = yield openai.chat.completions.create({
+                model: "gpt-4o",
+                messages: [
+                    {
+                        role: "system",
+                        content: `You are an expert event planner who creates and modifies professional Request for Proposals (RFPs) for venues.
+          You will be given an existing RFP and a request to modify it in some way.
+          
+          The RFP should maintain this exact format:
+          
+          # Request for Proposal (RFP)
+
+          ## 1. Event Overview
+          - Event Name
+          - Event Host Organization
+          - Event Organizer (if different from Host Organization)
+          - Event Type
+          - Event Description
+          
+          ## 2. Event Dates & Flexibility
+          - Preferred Date
+          - Alternative Date(s)
+          - Dates Flexible? (Yes/No)
+          
+          ## 3. Attendance
+          - Estimated Number of Attendees
+          
+          ## 4. Venue Requirements
+          Include a table with these exact columns:
+          | Room/Function | Space Required (sqft) | Seating Arrangement | Expected Number of Attendees | Accessibility Features |
+          
+          ## 5. Catering Requirements
+          - Meal Periods
+          - Service Style
+          
+          ## 6. Audio/Visual Requirements
+          - Equipment Needed
+          - Additional Technical Needs
+          
+          ## 7. Contact Information
+          - Contact Name
+          - Phone
+          - Email
+          - Address
+          
+          Maintain the professional formatting and structure of the RFP.
+          Only make changes that are relevant to the user's request.
+          Return the complete modified RFP.`
+                    },
+                    {
+                        role: "user",
+                        content: `Here is the current RFP:
+          
+          ${currentRFP}
+          
+          Please modify this RFP according to the following request:
+          
+          ${prompt}`
+                    }
+                ]
+            });
+            return response.choices[0].message.content || currentRFP;
+        }
+        catch (error) {
+            console.error('Error modifying RFP:', error);
+            return currentRFP;
+        }
+    });
+}
+/**
  * Generates a template RFP when OpenAI is not available
  * @param parsedData Structured event data
  * @returns Template RFP text
  */
 function generateTemplateRFP(parsedData) {
-    const today = new Date().toLocaleDateString();
-    return `
-# REQUEST FOR PROPOSAL (RFP)
-## ${parsedData.eventType}
-### Date: ${today}
+    return `# Request for Proposal (RFP)
 
-## 1. EVENT OVERVIEW
-We are planning a ${parsedData.eventType.toLowerCase()} and are seeking proposals from venues that can accommodate our requirements.
+## 1. Event Overview
+- **Event Name:** 
+- **Event Host Organization:** 
+- **Event Organizer:** 
+- **Event Type:** ${parsedData.eventType || '[Conference, Meeting, Exhibition, etc.]'}
+- **Event Description:**  
+  *Provide a brief overview of the event objectives, target audience, and overall theme.*
 
-## 2. EVENT DETAILS
-- **Event Type:** ${parsedData.eventType}
-- **Date:** ${parsedData.date}
-- **Number of Guests:** ${parsedData.numberOfGuests}
-- **Event Duration:** 8 hours (typical)
+## 2. Event Dates & Flexibility
+- **Preferred Date:** ${parsedData.date || '[Insert Date]'}
+- **Alternative Date(s):** 
+- **Dates Flexible?** (Yes/No): 
 
-## 3. VENUE REQUIREMENTS
-- **Space Required:** Approximately ${parsedData.venueSize.width}m x ${parsedData.venueSize.length}m
-- **Seating Arrangement:** ${parsedData.seatingStyle} style
-- **Room Setup:** The venue should be able to accommodate our floor plan which includes tables, a stage area, and space for movement.
+## 3. Attendance
+- **Estimated Number of Attendees:** ${parsedData.numberOfGuests || '[Insert Number]'}
 
-## 4. CATERING REQUIREMENTS
-- **Service Style:** ${parsedData.cateringStyle}
-- **Dietary Restrictions:** Venue must be able to accommodate common dietary restrictions (vegetarian, vegan, gluten-free)
-- **Beverage Service:** Please include options for both alcoholic and non-alcoholic beverages
+## 4. Venue Requirements
+Please provide detailed information for each room or function space required. Include any accessibility features (e.g., ADA compliance, wheelchair access):
 
-## 5. AUDIO/VISUAL REQUIREMENTS
-- Sound system suitable for announcements and background music
-- Projector and screen for presentations
-- Lighting appropriate for the event type
-- WiFi access for guests
+| Room/Function        | Space Required (sqft) | Seating Arrangement | Expected Number of Attendees | Accessibility Features |
+| -------------------- | --------------------- | ------------------- | ---------------------------- | ---------------------- |
+| Main Hall            | ${parsedData.venueSize ? `${parsedData.venueSize.width * parsedData.venueSize.length}` : '[Insert sqft]'} | ${parsedData.seatingStyle || '[Insert arrangement]'} | ${parsedData.numberOfGuests || ''} | |
 
-## 6. BUDGET CONSIDERATIONS
-Please provide detailed pricing for:
-- Venue rental
-- Catering (per person)
-- AV equipment
-- Any additional fees or charges
+## 5. Catering Requirements
+- **Meal Periods:** [e.g., Breakfast, Lunch, Coffee Breaks]
+- **Service Style:** ${parsedData.cateringStyle || '[e.g., Plated, Buffet, Family-Style]'}
 
-## 7. SUBMISSION REQUIREMENTS
-Please include in your proposal (if available):
-- Available dates around our preferred date
-- Detailed cost breakdown
-- Cancellation and refund policies
-- Photos of the venue
-- Floor plan options
+## 6. Audio/Visual Requirements
+- **Equipment Needed:** (e.g., Projectors, Screens, Sound System, Microphones)
+- **Additional Technical Needs:** 
 
-## 8. CONTACT INFORMATION
-For questions or to submit your proposal, please contact:
-- Name: [Event Organizer]
-- Email: organizer@example.com
-- Phone: (555) 123-4567
-
-Thank you for your consideration. We look forward to reviewing your proposal.
+## 7. Contact Information
+- **Contact Name:** 
+- **Phone:** 
+- **Email:** 
+- **Address:** 
 `;
 }
