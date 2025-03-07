@@ -2,20 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import TabNavigation, { TabType, FloorplanSubTab } from '../components/layout/TabNavigation';
+import HorizontalDivider from '../components/layout/HorizontalDivider';
+import ResizablePanel from '../components/layout/ResizablePanel';
 import RFPView from '../components/rfp/RFPView';
 import FloorPlanEditor from '../components/floorplan/FloorPlanEditor';
 import ConversationList from '../components/conversations/ConversationList';
 import ChatInterface from '../components/chat/ChatInterface';
+import CombinedChatPanel from '../components/chat/CombinedChatPanel';
 import { supabase } from '../services/supabaseClient';
+import { useAuth } from '../context/AuthContext';
 import { RFP } from '../types';
 import { generateRFP } from '../services/api';
+import { FloorPlanProvider } from '../context/FloorPlanContext';
 
 const EventDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>('floorplan');
   const [activeSubTab, setActiveSubTab] = useState<FloorplanSubTab>('tables');
-  const [eventName, setEventName] = useState<string>('EVENT NAME');
+  const [eventName, setEventName] = useState<string>('Annual Tech Conference 2025');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [rfpData, setRfpData] = useState<RFP | null>(null);
   const [showChat, setShowChat] = useState<boolean>(false);
@@ -199,6 +204,10 @@ const EventDetails: React.FC = () => {
     }
   };
 
+  const handleTabChange = (tab: 'RFP' | 'Floorplan' | 'Vendors') => {
+    setActiveTab(tab.toLowerCase() as TabType);
+  };
+
   const renderTabContent = () => {
     if (isLoading) {
       return <div className="loading">Loading...</div>;
@@ -220,7 +229,13 @@ const EventDetails: React.FC = () => {
           </div>
         );
       case 'floorplan':
-        return <FloorPlanEditor width={800} height={600} />;
+        return (
+          <FloorPlanProvider>
+            <div className="floorplan-container">
+              <FloorPlanEditor width={800} height={600} />
+            </div>
+          </FloorPlanProvider>
+        );
       case 'vendors':
         return <div className="vendors-placeholder">Vendors tab content (not implemented yet)</div>;
       default:
@@ -230,33 +245,39 @@ const EventDetails: React.FC = () => {
 
   return (
     <div className="event-details-container">
+      <Header 
+        title={eventName}
+        showBackButton={true}
+        activeTab={activeTab === 'rfp' ? 'RFP' : activeTab === 'floorplan' ? 'Floorplan' : 'Vendors'}
+        onTabChange={handleTabChange}
+      />
       <div className="event-details-content">
-        {showChat ? (
-          <ChatInterface 
-            conversationId={activeConversationId || ''}
-            eventName={eventName}
-            onBackToConversations={handleBackToConversations}
-            rfp={rfpData}
-            onRfpUpdated={handleRfpUpdatedFromChat}
-          />
-        ) : (
-          <ConversationList 
-            activeConversationId={activeConversationId} 
-            onSelectConversation={handleConversationSelect}
-          />
-        )}
-        <div className="event-details-main">
-          <TabNavigation 
-            activeTab={activeTab} 
-            onTabChange={(tab) => setActiveTab(tab)} 
-            activeSubTab={activeSubTab}
-            onSubTabChange={(subTab) => setActiveSubTab(subTab)}
-            eventName={eventName}
-          />
-          <div className="tab-content">
-            {renderTabContent()}
-          </div>
-        </div>
+        <ResizablePanel
+          leftPanel={
+            <div className="resizable-left-panel" style={{ width: '100%', overflow: 'hidden' }}>
+              <CombinedChatPanel 
+                showChat={showChat}
+                conversationId={activeConversationId || ''}
+                eventName={eventName}
+                onBackToConversations={handleBackToConversations}
+                rfp={rfpData}
+                onRfpUpdated={handleRfpUpdatedFromChat}
+                onSelectConversation={handleConversationSelect}
+                activeConversationId={activeConversationId}
+              />
+            </div>
+          }
+          rightPanel={
+            <div className="event-details-main">
+              <div className="tab-content">
+                {renderTabContent()}
+              </div>
+            </div>
+          }
+          initialLeftWidth={30}
+          minLeftWidth={20}
+          maxLeftWidth={50}
+        />
       </div>
     </div>
   );
