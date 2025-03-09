@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/layout/Header';
-import TabNavigation, { TabType, FloorplanSubTab } from '../components/layout/TabNavigation';
-import HorizontalDivider from '../components/layout/HorizontalDivider';
+import { TabType, FloorplanSubTab } from '../components/layout/TabNavigation';
 import ChatInterface from '../components/chat/ChatInterface';
 import RFPView from '../components/rfp/RFPView';
 import FloorPlanEditor from '../components/floorplan/FloorPlanEditor';
 import { FloorPlanProvider } from '../context/FloorPlanContext';
 import { RFP } from '../types';
-import SidebarToggle from '../components/layout/SidebarToggle';
+import ResizablePanel from '../components/layout/ResizablePanel';
 
 const NewEventPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,10 +16,6 @@ const NewEventPage: React.FC = () => {
   const [rfpData, setRfpData] = useState<RFP | null>(null);
   const [isGeneratingRFP, setIsGeneratingRFP] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(true);
-
-  const handleBackToConversations = () => {
-    navigate('/dashboard');
-  };
 
   const handleSaveRfp = async (rfpText: string) => {
     // In a real app, we would save the RFP to the database
@@ -71,19 +65,7 @@ const NewEventPage: React.FC = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'rfp':
-        return (
-          <div className="rfp-container-wrapper">
-            <RFPView rfp={rfpData} onSave={handleSaveRfp} loading={isGeneratingRFP} />
-            <div className="rfp-actions">
-              <button 
-                className="open-rfp-editor-button"
-                onClick={() => console.log('Open RFP Editor')}
-              >
-                Open Full RFP Editor
-              </button>
-            </div>
-          </div>
-        );
+        return <RFPView rfp={rfpData} onSave={handleSaveRfp} loading={isGeneratingRFP} />;
       case 'floorplan':
         return (
           <FloorPlanProvider>
@@ -100,47 +82,75 @@ const NewEventPage: React.FC = () => {
   };
 
   return (
-    <div className="new-event-container">
-      <div className={`chat-sidebar ${!sidebarVisible ? 'hidden' : ''}`}>
-        <ChatInterface 
-          conversationId="new"
-          eventName={eventName}
-          onBackToConversations={handleBackToConversations}
-          rfp={rfpData}
-          onRfpUpdated={handleRfpUpdatedFromChat}
-          sidebarVisible={sidebarVisible}
-          onToggleSidebar={toggleSidebar}
-        />
-      </div>
-      
-      {/* Floating toggle button that stays visible even when sidebar is hidden */}
-      <div className="floating-sidebar-toggle">
-        <SidebarToggle 
-          isOpen={sidebarVisible} 
-          onToggle={toggleSidebar} 
-          variant="inline"
-        />
-      </div>
-      
-      <div className={`main-content-with-chat ${!sidebarVisible ? 'sidebar-hidden' : ''}`}>
-        <Header 
-          title={eventName} 
-          showBackButton={true} 
-          activeTab={activeTab === 'rfp' ? 'RFP' : activeTab === 'floorplan' ? 'Floorplan' : 'Vendors'}
-          onTabChange={handleTabChange}
-        />
-        <TabNavigation 
-          activeTab={activeTab} 
-          onTabChange={(tab) => setActiveTab(tab as TabType)}
-          activeSubTab={activeSubTab}
-          onSubTabChange={(subTab) => setActiveSubTab(subTab as FloorplanSubTab)}
-          eventName={eventName}
-        />
-        <HorizontalDivider />
-        <div className="event-details-main">
-          {renderTabContent()}
+    <div className="app-container">
+      <header className="app-header">
+        <div className="header-container">
+          <div className="header-left">
+            <button className="back-button" onClick={() => navigate(-1)}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15.41 7.41L14 6L8 12L14 18L15.41 16.59L10.83 12L15.41 7.41Z" fill="currentColor"></path>
+              </svg>
+            </button>
+            <div className="app-logo">IntelliPlan</div>
+          </div>
+          <div className="header-tabs">
+            <button 
+              className={`header-tab ${activeTab === 'rfp' ? 'active' : ''}`}
+              onClick={() => handleTabChange('RFP')}
+            >
+              RFP
+            </button>
+            <button 
+              className={`header-tab ${activeTab === 'floorplan' ? 'active' : ''}`}
+              onClick={() => handleTabChange('Floorplan')}
+            >
+              Floorplan
+            </button>
+            <button 
+              className={`header-tab ${activeTab === 'vendors' ? 'active' : ''}`}
+              onClick={() => handleTabChange('Vendors')}
+            >
+              Vendors
+            </button>
+          </div>
+          <div className="header-right">
+            <button className="profile-button">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="currentColor"></path>
+              </svg>
+            </button>
+          </div>
         </div>
-      </div>
+        <div className="horizontal-divider"></div>
+      </header>
+
+      <ResizablePanel
+        leftPanel={
+          <div className={`chat-sidebar ${!sidebarVisible ? 'hidden' : ''}`}>
+            <ChatInterface 
+              conversationId="new"
+              eventName={eventName}
+              onBackToConversations={() => {}}
+              rfp={rfpData}
+              onRfpUpdated={handleRfpUpdatedFromChat}
+              sidebarVisible={sidebarVisible}
+              onToggleSidebar={toggleSidebar}
+            />
+          </div>
+        }
+        rightPanel={
+          <div className="main-content">
+            <div className="tab-content">
+              {renderTabContent()}
+            </div>
+          </div>
+        }
+        initialLeftWidth={30}
+        minLeftWidth={20}
+        maxLeftWidth={60}
+        sidebarVisible={sidebarVisible}
+        onToggleSidebar={toggleSidebar}
+      />
     </div>
   );
 };
