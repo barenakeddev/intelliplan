@@ -10,11 +10,28 @@
   background-color: white;
 }
 
+.rfp-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background-color: white;
+}
+
+.rfp-page-content {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 60px); /* Subtract header height */
+  overflow: hidden;
+}
+
 .rfp-page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  padding: 20px;
 }
 
 .rfp-page-header h1 {
@@ -25,6 +42,7 @@
 
 .rfp-actions {
   display: flex;
+  align-items: center;
   gap: 10px;
 }
 
@@ -49,7 +67,24 @@
   height: 36px;
 }
 
-.rfp-edit-button:hover,
+.rfp-edit-button {
+  padding: 0.25rem 0.75rem;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+}
+
+.rfp-edit-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
 .rfp-save-button:hover,
 .generate-rfp-button:hover,
 .edit-rfp-button:hover,
@@ -91,37 +126,47 @@
   margin-bottom: 20px;
 }
 
-.rfp-container {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
 .rfp-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--background-color);
   height: 60px;
+}
+
+/* Add padding to the RFP header when sidebar is hidden to align with the floating toggle */
+.sidebar-hidden .rfp-header,
+.main-content.sidebar-hidden .rfp-header,
+.resizable-right-panel .rfp-header {
+  padding-left: 70px; /* Adjusted to align with the floating toggle button */
+  transition: padding-left 0.3s ease;
 }
 
 .rfp-header h2 {
   margin: 0;
-  font-size: 18px;
   font-weight: 600;
+  font-size: 1.1rem;
 }
 
 .rfp-content {
   padding: 20px;
   overflow-y: auto;
-  max-height: 600px;
+  flex: 1;
+  transition: padding 0.3s ease;
+}
+
+/* Adjust padding when sidebar is hidden */
+.sidebar-hidden .rfp-content,
+.main-content.sidebar-hidden .rfp-content {
+  padding-left: 70px; /* Match the header padding */
 }
 
 .rfp-text {
-  white-space: pre-wrap;
+  font-size: 14px;
   line-height: 1.6;
+  height: 100%;
 }
 
 /* Rich Text Editor styles */
@@ -497,4 +542,31 @@
   padding: 0.75rem;
   border-top: 1px solid #e0e0e0;
   background: white;
+}
+
+/* Sidebar styles for RFP page */
+.sidebar {
+  width: 300px;
+  min-width: 300px;
+  height: 100%;
+  background-color: var(--background-color);
+  border-right: 1px solid var(--border-color);
+  overflow-y: auto;
+  transition: transform 0.3s ease, width 0.3s ease, min-width 0.3s ease;
+}
+
+.sidebar.hidden {
+  transform: translateX(-100%);
+  width: 0;
+  min-width: 0;
+}
+
+/* Main content adjustments for sidebar toggle */
+.main-content {
+  flex: 1;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content.sidebar-hidden {
+  margin-left: 0;
 } 

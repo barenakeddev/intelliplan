@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
 import { Conversation } from '../../types';
+import SidebarToggle from './SidebarToggle';
 
 interface SidebarProps {
   activeConversationId?: string;
@@ -99,6 +100,17 @@ const Sidebar: React.FC<SidebarProps> = ({
     <>
       <div className="sidebar">
         <div className="sidebar-header">
+          <div className="header-title-container">
+            <h1 className="header-title">IntelliPlan Dashboard</h1>
+            {onToggleSidebar && (
+              <SidebarToggle 
+                isOpen={sidebarVisible || true} 
+                onToggle={onToggleSidebar} 
+                variant="inline"
+                className="header-toggle"
+              />
+            )}
+          </div>
           <button 
             className="primary-button" 
             onClick={handleNewConversation}

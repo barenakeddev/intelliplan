@@ -12,7 +12,7 @@ const Login: React.FC = () => {
     e.preventDefault();
     await signIn(email, password);
     if (!error) {
-      navigate('/dashboard');
+      navigate('/new-event');
     }
   };
 

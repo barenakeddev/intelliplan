@@ -6,10 +6,10 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // If user is already logged in, redirect to dashboard
+  // If user is already logged in, redirect to new-event page
   React.useEffect(() => {
     if (user) {
-      navigate('/dashboard');
+      navigate('/new-event');
     }
   }, [user, navigate]);
 

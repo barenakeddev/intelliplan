@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import Header from '../components/layout/Header';
 import Sidebar from '../components/layout/Sidebar';
+import Header from '../components/layout/Header';
 import { useNavigate } from 'react-router-dom';
 import SidebarToggle from '../components/layout/SidebarToggle';
 
@@ -48,28 +48,20 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="dashboard-container">
-      <div className={`sidebar ${!sidebarVisible ? 'hidden' : ''}`}>
+    <div className={`dashboard-container ${!sidebarVisible ? 'sidebar-hidden' : ''}`}>
+      <Header 
+        title="Dashboard" 
+        showBackButton={false} 
+      />
+      
+      <div className="dashboard-content">
         <Sidebar 
           sidebarVisible={sidebarVisible}
           onToggleSidebar={toggleSidebar}
         />
       </div>
       
-      {/* Floating toggle button that stays visible even when sidebar is hidden */}
-      <div className="floating-sidebar-toggle">
-        <SidebarToggle 
-          isOpen={sidebarVisible} 
-          onToggle={toggleSidebar} 
-          variant="inline"
-        />
-      </div>
-      
       <div className={`main-content ${!sidebarVisible ? 'sidebar-hidden' : ''}`}>
-        <Header 
-          title="IntelliPlan Dashboard" 
-          showBackButton={false}
-        />
         <div className="dashboard-main">
           <div className="dashboard-welcome">
             <h1>Welcome to IntelliPlan</h1>
@@ -86,6 +78,16 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Floating toggle button that appears when sidebar is hidden */}
+      {!sidebarVisible && (
+        <div className="floating-sidebar-toggle">
+          <SidebarToggle 
+            isOpen={false} 
+            onToggle={toggleSidebar} 
+          />
+        </div>
+      )}
     </div>
   );
 };

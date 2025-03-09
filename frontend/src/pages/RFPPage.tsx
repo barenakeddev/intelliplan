@@ -2,16 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../services/supabaseClient';
-import { RFP, ParsedEventData, Event } from '../types';
+import { RFP, Event } from '../types';
 import RFPEditor from '../components/rfp/RFPEditor';
 import RFPEditorV2 from '../components/rfp/RFPEditorV2';
 import RFPView from '../components/rfp/RFPView';
-import HorizontalDivider from '../components/layout/HorizontalDivider';
-import Header from '../components/layout/Header';
 import Sidebar from '../components/layout/Sidebar';
 import { generateRFP, modifyRFPWithAI } from '../services/api';
 import '../styles/rfp.css';
-import SidebarToggle from '../components/layout/SidebarToggle';
 
 const RFPPage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -165,104 +162,131 @@ const RFPPage: React.FC = () => {
   }
 
   return (
-    <div className="rfp-container">
-      <div className={`sidebar ${!sidebarVisible ? 'hidden' : ''}`}>
-        <Sidebar
-          activeConversationId={eventId}
-          sidebarVisible={sidebarVisible}
-          onToggleSidebar={toggleSidebar}
-        />
-      </div>
+    <div className="app-container">
+      <header className="app-header">
+        <div className="header-container">
+          <div className="header-left">
+            <button className="back-button" onClick={() => navigate(-1)}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15.41 7.41L14 6L8 12L14 18L15.41 16.59L10.83 12L15.41 7.41Z" fill="currentColor"></path>
+              </svg>
+            </button>
+            <div className="app-logo">IntelliPlan</div>
+          </div>
+          <div className="header-tabs">
+            <button 
+              className={`header-tab ${activeTab === 'RFP' ? 'active' : ''}`}
+              onClick={() => handleTabChange('RFP')}
+            >
+              RFP
+            </button>
+            <button 
+              className={`header-tab ${activeTab === 'Floorplan' ? 'active' : ''}`}
+              onClick={() => handleTabChange('Floorplan')}
+            >
+              Floorplan
+            </button>
+            <button 
+              className={`header-tab ${activeTab === 'Vendors' ? 'active' : ''}`}
+              onClick={() => handleTabChange('Vendors')}
+            >
+              Vendors
+            </button>
+          </div>
+          <div className="header-right">
+            <button className="profile-button">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="currentColor"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div className="horizontal-divider"></div>
+      </header>
       
-      {/* Floating toggle button that stays visible even when sidebar is hidden */}
-      <div className="floating-sidebar-toggle">
-        <SidebarToggle 
-          isOpen={sidebarVisible} 
-          onToggle={toggleSidebar} 
-          variant="inline"
-        />
-      </div>
-      
-      <div className={`main-content ${!sidebarVisible ? 'sidebar-hidden' : ''}`}>
-        <Header 
-          title={event?.parsed_data?.eventType || 'Annual Tech Conference 2025'}
-          showBackButton={true}
-          activeTab="RFP"
-          onTabChange={handleTabChange}
-        />
-        {useNewEditor ? (
-          <RFPEditorV2
-            rfp={rfp}
-            eventData={event?.parsed_data || null}
-            eventName={event?.parsed_data?.eventType || 'Event'}
-            onSave={handleSaveRFP}
-            onAIPrompt={handleAIPrompt}
-            loading={loading || generating}
+      <div className="rfp-page-content">
+        <div className={`sidebar ${!sidebarVisible ? 'hidden' : ''}`}>
+          <Sidebar
+            activeConversationId={eventId}
+            sidebarVisible={sidebarVisible}
+            onToggleSidebar={toggleSidebar}
           />
-        ) : (
-          <>
-            <div className="rfp-page-header">
-              <h1>{event?.parsed_data?.eventType || 'Event'} RFP</h1>
-              <div className="rfp-actions">
-                {!rfp && (
+        </div>
+        
+        <div className={`main-content ${!sidebarVisible ? 'sidebar-hidden' : ''}`}>
+          {useNewEditor ? (
+            <RFPEditorV2
+              rfp={rfp}
+              eventData={event?.parsed_data || null}
+              eventName={event?.parsed_data?.eventType || 'Event'}
+              onSave={handleSaveRFP}
+              onAIPrompt={handleAIPrompt}
+              loading={loading || generating}
+            />
+          ) : (
+            <>
+              <div className="rfp-page-header">
+                <h1>{event?.parsed_data?.eventType || 'Event'} RFP</h1>
+                <div className="rfp-actions">
+                  {!rfp && (
+                    <button 
+                      className="generate-rfp-button" 
+                      onClick={handleGenerateRFP}
+                      disabled={generating}
+                    >
+                      {generating ? 'Generating...' : 'Generate RFP'}
+                    </button>
+                  )}
+                  
+                  {rfp && !isEditMode && (
+                    <button 
+                      className="edit-rfp-button" 
+                      onClick={() => setIsEditMode(true)}
+                    >
+                      Edit RFP
+                    </button>
+                  )}
+                  
+                  {rfp && isEditMode && (
+                    <button 
+                      className="view-rfp-button" 
+                      onClick={() => setIsEditMode(false)}
+                    >
+                      View RFP
+                    </button>
+                  )}
+                  
                   <button 
-                    className="generate-rfp-button" 
-                    onClick={handleGenerateRFP}
-                    disabled={generating}
+                    className="toggle-editor-button" 
+                    onClick={() => setUseNewEditor(true)}
                   >
-                    {generating ? 'Generating...' : 'Generate RFP'}
+                    Use New Editor
                   </button>
-                )}
-                
-                {rfp && !isEditMode && (
-                  <button 
-                    className="edit-rfp-button" 
-                    onClick={() => setIsEditMode(true)}
-                  >
-                    Edit RFP
-                  </button>
-                )}
-                
-                {rfp && isEditMode && (
-                  <button 
-                    className="view-rfp-button" 
-                    onClick={() => setIsEditMode(false)}
-                  >
-                    View RFP
-                  </button>
-                )}
-                
-                <button 
-                  className="toggle-editor-button" 
-                  onClick={() => setUseNewEditor(true)}
-                >
-                  Use New Editor
-                </button>
+                </div>
               </div>
-            </div>
-            <HorizontalDivider />
-            
-            {error && <div className="error-message">{error}</div>}
-            
-            {rfp && !isEditMode && (
-              <RFPView 
-                rfp={rfp} 
-                onSave={handleSaveRFP} 
-                loading={loading} 
-              />
-            )}
-            
-            {isEditMode && (
-              <RFPEditor 
-                rfp={rfp} 
-                eventData={event?.parsed_data || null}
-                onSave={handleSaveRFP}
-                onAIPrompt={handleAIPrompt}
-                loading={loading}
-              />
-            )}
-          </>
-        )}
+              
+              {error && <div className="error-message">{error}</div>}
+              
+              {rfp && !isEditMode && (
+                <RFPView 
+                  rfp={rfp} 
+                  onSave={handleSaveRFP} 
+                  loading={loading} 
+                />
+              )}
+              
+              {isEditMode && (
+                <RFPEditor 
+                  rfp={rfp} 
+                  eventData={event?.parsed_data || null}
+                  onSave={handleSaveRFP}
+                  onAIPrompt={handleAIPrompt}
+                  loading={loading}
+                />
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

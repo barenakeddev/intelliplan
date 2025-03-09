@@ -23,7 +23,7 @@ const Register: React.FC = () => {
     await signUp(email, password);
     
     if (!error) {
-      navigate('/dashboard');
+      navigate('/new-event');
     }
   };
 

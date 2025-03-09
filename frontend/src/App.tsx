@@ -5,7 +5,6 @@ import './styles/global.css';
 import './styles/rfp.css';
 import './styles/chat.css';
 import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
 import EventDetails from './pages/EventDetails';
 import NewEventPage from './pages/NewEventPage';
 import RFPPage from './pages/RFPPage';
@@ -28,10 +27,6 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route 
-          path="/dashboard" 
-          element={<ProtectedRoute element={<Dashboard />} />} 
-        />
-        <Route 
           path="/event/:id" 
           element={<ProtectedRoute element={<EventDetails />} />} 
         />
@@ -43,6 +38,7 @@ function AppRoutes() {
           path="/event/:eventId/rfp" 
           element={<ProtectedRoute element={<RFPPage />} />} 
         />
+        <Route path="/dashboard" element={<Navigate to="/new-event" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
