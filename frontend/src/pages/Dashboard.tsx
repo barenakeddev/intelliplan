@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Header from '../components/layout/Header';
 import Sidebar from '../components/layout/Sidebar';
 import { useNavigate } from 'react-router-dom';
+import SidebarToggle from '../components/layout/SidebarToggle';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const [sidebarVisible, setSidebarVisible] = useState(true);
 
   // Mock data for conversations
   const conversations = [
@@ -41,15 +43,40 @@ const Dashboard: React.FC = () => {
     navigate('/event/new');
   };
 
+  const toggleSidebar = () => {
+    setSidebarVisible(!sidebarVisible);
+  };
+
   return (
     <div className="dashboard-container">
-      <Header />
-      <div className="dashboard-content">
-        <Sidebar />
+      <div className={`sidebar ${!sidebarVisible ? 'hidden' : ''}`}>
+        <Sidebar 
+          sidebarVisible={sidebarVisible}
+          onToggleSidebar={toggleSidebar}
+        />
+      </div>
+      
+      {/* Floating toggle button that stays visible even when sidebar is hidden */}
+      <div className="floating-sidebar-toggle">
+        <SidebarToggle 
+          isOpen={sidebarVisible} 
+          onToggle={toggleSidebar} 
+          variant="inline"
+        />
+      </div>
+      
+      <div className={`main-content ${!sidebarVisible ? 'sidebar-hidden' : ''}`}>
+        <Header 
+          title="IntelliPlan Dashboard" 
+          showBackButton={false}
+        />
         <div className="dashboard-main">
           <div className="dashboard-welcome">
             <h1>Welcome to IntelliPlan</h1>
-            <p>Select a conversation from the sidebar or create a new event</p>
+            <p>Your AI-powered event planning assistant</p>
+          </div>
+          
+          <div className="dashboard-actions">
             <button 
               className="primary-button"
               onClick={handleNewConversation}

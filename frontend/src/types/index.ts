@@ -100,4 +100,23 @@ export interface RFPSection {
   id: string;
   title: string;
   content: string;
+}
+
+export interface ChatAssistantProps {
+  rfpName: string;
+  onSendMessage: (message: string) => Promise<string>;
+}
+
+export interface Message {
+  id: string;
+  content: string;
+  sender: 'user' | 'assistant';
+  timestamp: Date;
+}
+
+export interface RichTextEditorProps {
+  content: string;
+  onChange: (content: string) => void;
+  placeholder?: string;
+  editorType?: 'rfp' | 'floorplan' | 'vendor';
 } 

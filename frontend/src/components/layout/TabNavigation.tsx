@@ -1,4 +1,5 @@
 import React from 'react';
+import HorizontalDivider from './HorizontalDivider';
 
 export type TabType = 'rfp' | 'floorplan' | 'vendors';
 export type FloorplanSubTab = 'tables' | 'seating' | 'staging' | 'av';
@@ -52,6 +53,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
         </div>
         <div className="tab-spacer"></div>
       </div>
+      <HorizontalDivider />
       
       {activeTab === 'floorplan' && (
         <div className="subtabs">
@@ -59,30 +61,29 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
             className={`subtab ${activeSubTab === 'tables' ? 'active' : ''}`}
             onClick={() => handleSubTabClick('tables')}
           >
-            Table t...
+            Tables
           </div>
           <div
             className={`subtab ${activeSubTab === 'seating' ? 'active' : ''}`}
             onClick={() => handleSubTabClick('seating')}
           >
-            Seatin...
+            Seating
           </div>
           <div
             className={`subtab ${activeSubTab === 'staging' ? 'active' : ''}`}
             onClick={() => handleSubTabClick('staging')}
           >
-            Stagin...
+            Staging
           </div>
           <div
             className={`subtab ${activeSubTab === 'av' ? 'active' : ''}`}
             onClick={() => handleSubTabClick('av')}
           >
-            AV...
+            AV
           </div>
         </div>
       )}
-      
-      <div className="event-name">{eventName}</div>
+      {activeTab === 'floorplan' && <HorizontalDivider />}
     </div>
   );
 };

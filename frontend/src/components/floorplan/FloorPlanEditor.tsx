@@ -1,10 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Stage as KonvaStage, Layer, Rect, Text, Group } from 'react-konva';
 import { useFloorPlan, TableElement, StageElement as StageElementType, ExitElement as ExitElementType } from '../../context/FloorPlanContext';
 import Table from './elements/Table';
 import StageElement from './elements/StageElement';
 import Exit from './elements/Exit';
 import { KonvaEventObject } from 'konva/lib/Node';
+import HorizontalDivider from '../layout/HorizontalDivider';
 
 interface FloorPlanEditorProps {
   width: number;
@@ -17,15 +18,42 @@ const FloorPlanEditor: React.FC<FloorPlanEditorProps> = ({ width, height }) => {
     venueDimensions,
     selectedElement,
     updateElement,
-    selectElement
+    selectElement,
+    addElement,
+    removeElement
   } = useFloorPlan();
   
   const stageRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [stageSize, setStageSize] = useState({ width, height });
+  const [activeTool, setActiveTool] = useState<string>('select');
+  const [shapeType, setShapeType] = useState<'round' | 'rectangular'>('round');
+  const [lineWidth, setLineWidth] = useState<number>(2);
+  const [lineColor, setLineColor] = useState<string>('#000000');
+  
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const { clientWidth, clientHeight } = containerRef.current;
+        setStageSize({
+          width: clientWidth,
+          height: clientHeight
+        });
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    
+    return () => {
+      window.removeEventListener('resize', updateDimensions);
+    };
+  }, []);
   
   // Calculate scale to fit the floor plan in the available space
   const calculateScale = () => {
-    const scaleX = (width - 40) / venueDimensions.width;
-    const scaleY = (height - 40) / venueDimensions.height;
+    const scaleX = (stageSize.width - 40) / venueDimensions.width;
+    const scaleY = (stageSize.height - 40) / venueDimensions.height;
     
     // Use the smaller scale to ensure the entire floor plan fits
     return Math.min(scaleX, scaleY);
@@ -63,6 +91,55 @@ const FloorPlanEditor: React.FC<FloorPlanEditorProps> = ({ width, height }) => {
   
   const handleSelect = (id: number | null) => {
     selectElement(id);
+  };
+
+  const handleCanvasClick = (e: KonvaEventObject<MouseEvent>) => {
+    if (activeTool === 'select') {
+      // If in select mode, just deselect if clicking on empty space
+      if (e.target === e.currentTarget) {
+        handleSelect(null);
+      }
+      return;
+    }
+
+    // Get click position in real-world coordinates
+    const stage = stageRef.current;
+    const pointerPosition = stage.getPointerPosition();
+    const realWorldCoords = toRealWorldCoords(pointerPosition.x, pointerPosition.y);
+
+    // Add new element based on active tool
+    if (activeTool === 'table') {
+      addElement({
+        type: 'table',
+        shape: shapeType,
+        x: realWorldCoords.x,
+        y: realWorldCoords.y,
+        radius: shapeType === 'round' ? 0.75 : undefined,
+        width: shapeType === 'rectangular' ? 1.5 : undefined,
+        height: shapeType === 'rectangular' ? 0.75 : undefined,
+        capacity: 8,
+        rotation: 0
+      } as Omit<TableElement, 'id'>);
+    } else if (activeTool === 'stage') {
+      addElement({
+        type: 'stage',
+        x: realWorldCoords.x,
+        y: realWorldCoords.y,
+        width: 3,
+        height: 1,
+        rotation: 0
+      } as Omit<StageElementType, 'id'>);
+    } else if (activeTool === 'exit') {
+      addElement({
+        type: 'exit',
+        x: realWorldCoords.x,
+        y: realWorldCoords.y,
+        isEmergency: false
+      } as Omit<ExitElementType, 'id'>);
+    }
+
+    // Switch back to select mode after placing an element
+    setActiveTool('select');
   };
   
   // Draw grid lines
@@ -195,42 +272,138 @@ const FloorPlanEditor: React.FC<FloorPlanEditorProps> = ({ width, height }) => {
       }
     });
   };
-  
-  // Handle click on empty area to deselect
-  const handleStageClick = (e: KonvaEventObject<MouseEvent>) => {
-    if (e.target === e.currentTarget) {
-      handleSelect(null);
+
+  const handleDeleteSelected = () => {
+    if (selectedElement !== null) {
+      removeElement(selectedElement);
     }
   };
   
   return (
-    <div className="floor-plan-editor">
-      <KonvaStage
-        ref={stageRef}
-        width={width}
-        height={height}
-        onClick={handleStageClick}
-      >
-        <Layer>
-          {/* Background */}
-          <Rect
-            x={0}
-            y={0}
-            width={width}
-            height={height}
-            fill="#f9f9f9"
+    <div className="floor-plan-editor-container">
+      {/* Second toolbar */}
+      <div className="floor-plan-subtoolbar">
+        <div className="toolbar-section">
+          <button className="toolbar-icon-button">
+            <span className="icon">←</span>
+          </button>
+          <button className="toolbar-icon-button">
+            <span className="icon">→</span>
+          </button>
+        </div>
+        
+        <div className="toolbar-section">
+          <select 
+            className="toolbar-select"
+            value={activeTool}
+            onChange={(e) => setActiveTool(e.target.value)}
+          >
+            <option value="select">Select</option>
+            <option value="table">Table</option>
+            <option value="stage">Stage</option>
+            <option value="exit">Exit</option>
+          </select>
+          
+          <select 
+            className="toolbar-select"
+            value={shapeType}
+            onChange={(e) => setShapeType(e.target.value as 'round' | 'rectangular')}
+          >
+            <option value="round">Round</option>
+            <option value="rectangular">Rectangular</option>
+          </select>
+          
+          <div className="toolbar-divider"></div>
+          
+          <button 
+            className={`toolbar-button ${activeTool === 'select' ? 'active' : ''}`}
+            onClick={() => setActiveTool('select')}
+          >
+            <span className="icon">▢</span>
+          </button>
+          
+          <button 
+            className={`toolbar-button ${activeTool === 'table' ? 'active' : ''}`}
+            onClick={() => setActiveTool('table')}
+          >
+            <span className="icon">○</span>
+          </button>
+          
+          <button 
+            className={`toolbar-button ${activeTool === 'stage' ? 'active' : ''}`}
+            onClick={() => setActiveTool('stage')}
+          >
+            <span className="icon">▭</span>
+          </button>
+          
+          <button 
+            className={`toolbar-button ${activeTool === 'exit' ? 'active' : ''}`}
+            onClick={() => setActiveTool('exit')}
+          >
+            <span className="icon">⤴</span>
+          </button>
+          
+          <div className="toolbar-divider"></div>
+          
+          <select 
+            className="toolbar-select"
+            value={lineWidth}
+            onChange={(e) => setLineWidth(parseInt(e.target.value))}
+          >
+            <option value="1">1px</option>
+            <option value="2">2px</option>
+            <option value="3">3px</option>
+            <option value="4">4px</option>
+          </select>
+          
+          <input 
+            type="color" 
+            value={lineColor}
+            onChange={(e) => setLineColor(e.target.value)}
+            className="toolbar-color-picker"
           />
           
-          {/* Grid */}
-          {renderGrid()}
-          
-          {/* Measurements */}
-          {renderMeasurements()}
-          
-          {/* Floor plan elements */}
-          {renderElements()}
-        </Layer>
-      </KonvaStage>
+          <button 
+            className="toolbar-button"
+            onClick={handleDeleteSelected}
+            disabled={selectedElement === null}
+          >
+            <span className="icon">🗑</span>
+          </button>
+        </div>
+      </div>
+      
+      <HorizontalDivider />
+      
+      {/* Main canvas */}
+      <div className="floor-plan-canvas" ref={containerRef}>
+        <KonvaStage
+          ref={stageRef}
+          width={stageSize.width}
+          height={stageSize.height}
+          onClick={handleCanvasClick}
+        >
+          <Layer>
+            {/* Background */}
+            <Rect
+              x={0}
+              y={0}
+              width={stageSize.width}
+              height={stageSize.height}
+              fill="#f9f9f9"
+            />
+            
+            {/* Grid */}
+            {renderGrid()}
+            
+            {/* Measurements */}
+            {renderMeasurements()}
+            
+            {/* Floor plan elements */}
+            {renderElements()}
+          </Layer>
+        </KonvaStage>
+      </div>
     </div>
   );
 };

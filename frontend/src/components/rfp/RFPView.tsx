@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { RFP } from '../../types';
 import Markdown from 'markdown-to-jsx';
+import HorizontalDivider from '../layout/HorizontalDivider';
 
 interface RFPViewProps {
   rfp: RFP | null;
@@ -131,7 +132,7 @@ Please provide detailed information for each room or function space required. In
           )}
         </div>
       </div>
-      
+      <HorizontalDivider />
       {showUpdateNotification && (
         <div className="rfp-update-notification">
           <p>The RFP has been updated via chat. Review the changes below.</p>

@@ -3,9 +3,11 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './App.css';
 import './styles/global.css';
 import './styles/rfp.css';
+import './styles/chat.css';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import EventDetails from './pages/EventDetails';
+import NewEventPage from './pages/NewEventPage';
 import RFPPage from './pages/RFPPage';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
@@ -32,6 +34,10 @@ function AppRoutes() {
         <Route 
           path="/event/:id" 
           element={<ProtectedRoute element={<EventDetails />} />} 
+        />
+        <Route 
+          path="/new-event" 
+          element={<ProtectedRoute element={<NewEventPage />} />} 
         />
         <Route 
           path="/event/:eventId/rfp" 

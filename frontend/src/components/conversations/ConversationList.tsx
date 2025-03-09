@@ -4,6 +4,7 @@ import { supabase } from '../../services/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
 import { Conversation } from '../../types';
 import ConversationItem from './ConversationItem';
+import HorizontalDivider from '../layout/HorizontalDivider';
 
 interface ConversationListProps {
   activeConversationId?: string;
@@ -112,6 +113,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
   return (
     <div className="conversations-container">
       <h2 className="conversations-title">Conversations</h2>
+      <HorizontalDivider />
       <div className="conversations-list">
         {loading ? (
           <div className="loading-indicator">Loading...</div>

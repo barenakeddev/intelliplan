@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { parseDescription, modifyRFPWithAI, extractInfoFromMessage } from '../../services/api';
+import { modifyRFPWithAI, extractInfoFromMessage } from '../../services/api';
 import { RFP } from '../../types';
+import PlaceholdersAndVanishInput from './PlaceholdersAndVanishInput';
+import SidebarToggle from '../layout/SidebarToggle';
 
 interface ChatInterfaceProps {
   conversationId: string;
@@ -8,6 +10,8 @@ interface ChatInterfaceProps {
   onBackToConversations: () => void;
   rfp: RFP | null;
   onRfpUpdated: (rfpText: string) => void;
+  sidebarVisible?: boolean;
+  onToggleSidebar?: () => void;
 }
 
 // Define the structure for collected event information
@@ -48,26 +52,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   eventName,
   onBackToConversations,
   rfp,
-  onRfpUpdated
+  onRfpUpdated,
+  sidebarVisible = true,
+  onToggleSidebar
 }) => {
   const [messages, setMessages] = useState<Array<{ text: string; sender: 'user' | 'assistant' }>>([]);
-  const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [collectedInfo, setCollectedInfo] = useState<EventInfo>({});
-  const [rfpGenerated, setRfpGenerated] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Add initial assistant message when component mounts
-  useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([
-        {
-          text: "Welcome to IntelliPlan! I'm your event planning assistant. Please tell me about your event, and I'll help you create a Request for Proposal (RFP). You can start by telling me what type of event you're planning.",
-          sender: 'assistant'
-        }
-      ]);
-    }
-  }, []);
 
   useEffect(() => {
     // Scroll to bottom whenever messages change
@@ -144,13 +136,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     return "I think I have all the information I need. Would you like me to generate your RFP now?";
   };
 
-  const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
+  const handleSendMessage = async (message: string) => {
+    if (!message.trim()) return;
 
     // Add user message to chat
-    const userMessage = { text: newMessage, sender: 'user' as const };
+    const userMessage = { text: message, sender: 'user' as const };
     setMessages(prev => [...prev, userMessage]);
-    setNewMessage('');
     setIsLoading(true);
 
     try {
@@ -159,7 +150,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       let assistantResponse = "";
       
       try {
-        const response = await extractInfoFromMessage(newMessage, collectedInfo, conversationId);
+        const response = await extractInfoFromMessage(message, collectedInfo, conversationId);
         
         if (response && response.updatedInfo) {
           // Update the collected information
@@ -174,8 +165,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       // Check if the user is asking to generate the RFP
       const generateKeywords = ['generate rfp', 'create rfp', 'make rfp', 'build rfp'];
       const shouldGenerateRFP = generateKeywords.some(keyword => 
-        newMessage.toLowerCase().includes(keyword)
-      ) || (newMessage.toLowerCase().includes('yes') && 
+        message.toLowerCase().includes(keyword)
+      ) || (message.toLowerCase().includes('yes') && 
         messages.length > 0 && messages[messages.length - 1].text.includes('generate your RFP now'));
       
       if (shouldGenerateRFP || 
@@ -198,7 +189,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           
           if (rfpResponse && rfpResponse.modifiedRFP) {
             onRfpUpdated(rfpResponse.modifiedRFP);
-            setRfpGenerated(true);
             
             // Add a follow-up message after a short delay
             setTimeout(() => {
@@ -238,54 +228,64 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
+  // Event-specific placeholder suggestions
+  const placeholders = [
+    "I'm planning a corporate conference for 200 people",
+    "I need to organize a wedding for 150 guests",
+    "We're hosting a trade show and need venue options",
+    "I'm looking for a venue for a team retreat",
+    "We need a space for our annual company meeting"
+  ];
+
   return (
     <div className="chat-interface">
       <div className="chat-header">
         <button className="back-button" onClick={onBackToConversations}>
-          &larr; Back
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
         </button>
-        <h2>{eventName}</h2>
+        <div className="chat-title">{eventName}</div>
+        {onToggleSidebar && (
+          <SidebarToggle 
+            isOpen={sidebarVisible} 
+            onToggle={onToggleSidebar} 
+            variant="inline"
+          />
+        )}
       </div>
+      
       <div className="messages-container">
-        {messages.map((message, index) => (
-          <div key={index} className={`message ${message.sender}`}>
-            <div className="message-content">{message.text}</div>
+        {messages.length === 0 ? (
+          <div className="empty-state">
+            <p className="text-gray-500 dark:text-gray-400 text-center mt-8">
+              How can I help with your event?
+            </p>
           </div>
-        ))}
-        {isLoading && (
-          <div className="message assistant">
-            <div className="message-content loading">
-              <div className="typing-indicator">
-                <span></span>
-                <span></span>
-                <span></span>
+        ) : (
+          <div className="messages-list">
+            {messages.map((message, index) => (
+              <div 
+                key={index} 
+                className={`message ${message.sender}`}
+              >
+                <div className="message-content">{message.text}</div>
               </div>
-            </div>
+            ))}
           </div>
         )}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef}></div>
       </div>
+      
       <div className="message-input-container">
-        <textarea
-          className="message-input"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Type your message here..."
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSendMessage();
-            }
-          }}
-          disabled={isLoading}
-        />
-        <button 
-          className="send-button" 
-          onClick={handleSendMessage}
-          disabled={isLoading || !newMessage.trim()}
-        >
-          Send
-        </button>
+        <form className="chat-input-form">
+          <PlaceholdersAndVanishInput
+            placeholders={placeholders}
+            onSendMessage={handleSendMessage}
+            isLoading={isLoading}
+            className="max-w-3xl mx-auto"
+          />
+        </form>
       </div>
     </div>
   );

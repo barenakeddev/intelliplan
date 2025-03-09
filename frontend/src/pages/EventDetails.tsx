@@ -9,11 +9,13 @@ import FloorPlanEditor from '../components/floorplan/FloorPlanEditor';
 import ConversationList from '../components/conversations/ConversationList';
 import ChatInterface from '../components/chat/ChatInterface';
 import CombinedChatPanel from '../components/chat/CombinedChatPanel';
+import SidebarToggle from '../components/layout/SidebarToggle';
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { RFP } from '../types';
 import { generateRFP } from '../services/api';
 import { FloorPlanProvider } from '../context/FloorPlanContext';
+import Sidebar from '../components/layout/Sidebar';
 
 const EventDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +28,7 @@ const EventDetails: React.FC = () => {
   const [showChat, setShowChat] = useState<boolean>(false);
   const [activeConversationId, setActiveConversationId] = useState<string | undefined>(id);
   const [isGeneratingRFP, setIsGeneratingRFP] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(true);
 
   useEffect(() => {
     // In a real app, we would fetch the event details from the API
@@ -37,8 +40,8 @@ const EventDetails: React.FC = () => {
       try {
         // If creating a new event, don't try to fetch from Supabase
         if (id === 'new') {
-          setEventName('EVENT NAME');
-          setShowChat(false);
+          setEventName('New Event');
+          setShowChat(true); // Show chat for new events
           setIsLoading(false);
           return;
         }
@@ -208,6 +211,10 @@ const EventDetails: React.FC = () => {
     setActiveTab(tab.toLowerCase() as TabType);
   };
 
+  const toggleSidebar = () => {
+    setSidebarVisible(!sidebarVisible);
+  };
+
   const renderTabContent = () => {
     if (isLoading) {
       return <div className="loading">Loading...</div>;
@@ -245,39 +252,53 @@ const EventDetails: React.FC = () => {
 
   return (
     <div className="event-details-container">
-      <Header 
-        title={eventName}
-        showBackButton={true}
-        activeTab={activeTab === 'rfp' ? 'RFP' : activeTab === 'floorplan' ? 'Floorplan' : 'Vendors'}
-        onTabChange={handleTabChange}
-      />
-      <div className="event-details-content">
-        <ResizablePanel
-          leftPanel={
-            <div className="resizable-left-panel" style={{ width: '100%', overflow: 'hidden' }}>
-              <CombinedChatPanel 
-                showChat={showChat}
-                conversationId={activeConversationId || ''}
+      <div className={`sidebar ${!sidebarVisible ? 'hidden' : ''}`}>
+        <Sidebar 
+          activeConversationId={id} 
+          sidebarVisible={sidebarVisible}
+          onToggleSidebar={toggleSidebar}
+        />
+      </div>
+      
+      {/* Floating toggle button that stays visible even when sidebar is hidden */}
+      <div className="floating-sidebar-toggle">
+        <SidebarToggle 
+          isOpen={sidebarVisible} 
+          onToggle={toggleSidebar} 
+          variant="inline"
+        />
+      </div>
+      
+      <div className={`main-content ${!sidebarVisible ? 'sidebar-hidden' : ''}`}>
+        <Header 
+          title={eventName} 
+          showBackButton={true} 
+          activeTab={activeTab === 'rfp' ? 'RFP' : activeTab === 'floorplan' ? 'Floorplan' : 'Vendors'}
+          onTabChange={handleTabChange}
+        />
+        <TabNavigation 
+          activeTab={activeTab} 
+          onTabChange={(tab) => setActiveTab(tab as TabType)}
+          activeSubTab={activeSubTab}
+          onSubTabChange={(subTab) => setActiveSubTab(subTab as FloorplanSubTab)}
+          eventName={eventName}
+        />
+        <HorizontalDivider />
+        <div className="event-details-main">
+          <ResizablePanel
+            leftPanel={
+              <ChatInterface 
+                conversationId={id || ''}
                 eventName={eventName}
                 onBackToConversations={handleBackToConversations}
                 rfp={rfpData}
                 onRfpUpdated={handleRfpUpdatedFromChat}
-                onSelectConversation={handleConversationSelect}
-                activeConversationId={activeConversationId}
               />
-            </div>
-          }
-          rightPanel={
-            <div className="event-details-main">
-              <div className="tab-content">
-                {renderTabContent()}
-              </div>
-            </div>
-          }
-          initialLeftWidth={30}
-          minLeftWidth={20}
-          maxLeftWidth={50}
-        />
+            }
+            rightPanel={renderTabContent()}
+            initialLeftWidth={35}
+          />
+        </div>
       </div>
     </div>
   );
