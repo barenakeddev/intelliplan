@@ -101,7 +101,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className="sidebar">
         <div className="sidebar-header">
           <div className="header-title-container">
-            <h1 className="header-title">IntelliPlan Dashboard</h1>
+            <h1 className="header-title">IntelliPlan</h1>
             {onToggleSidebar && (
               <SidebarToggle 
                 isOpen={sidebarVisible || true} 
