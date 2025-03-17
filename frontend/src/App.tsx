@@ -3,7 +3,7 @@ import { getHealth, getTestStatus } from './services/api';
 import './App.css';
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
-import { UserCircle } from 'lucide-react';
+import { UserCircle, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import ChatPanel from './components/chat-panel';
 import RfpContent from './components/rfp-content';
 import { ThemeProvider } from './components/theme-provider';
@@ -15,6 +15,11 @@ function App() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [activeTab, setActiveTab] = useState<string>("rfp");
+  const [isChatPanelVisible, setIsChatPanelVisible] = useState(true);
+
+  const toggleChatPanel = () => {
+    setIsChatPanelVisible(!isChatPanelVisible);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,12 +74,45 @@ function App() {
           </header>
 
           {/* Main Content Area - Split Panel */}
-          <div className="flex flex-1 overflow-hidden">
+          <div className="flex flex-1 overflow-hidden relative">
             {/* Left Panel - Chat */}
-            <ChatPanel />
+            <ChatPanel 
+              className={`flex-shrink-0 transition-all duration-300 ease-in-out ${
+                isChatPanelVisible ? "translate-x-0" : "-translate-x-full absolute left-0 h-full"
+              }`}
+            />
 
             {/* Right Panel - Content */}
-            <div className="flex-1 overflow-y-auto border-l">
+            <div
+              className={`flex-1 overflow-y-auto transition-all duration-300 ease-in-out ${
+                isChatPanelVisible ? "border-l" : ""
+              }`}
+            >
+              {/* Toggle Button */}
+              <div className="sticky top-0 z-10 bg-white">
+                <div className="flex items-center p-4">
+                  <Button
+                    onClick={toggleChatPanel}
+                    variant="ghost"
+                    size="icon"
+                    className="mr-3 h-10 w-10 rounded-full bg-white text-purple-600 border border-gray-200 shadow-sm hover:shadow-md hover:border-purple-200 transition-all duration-200"
+                    aria-label={isChatPanelVisible ? "Hide chat panel" : "Show chat panel"}
+                  >
+                    {isChatPanelVisible ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
+                  </Button>
+                  <h2 className="text-lg font-medium">
+                    {activeTab === "rfp" ? "Request for Proposal" : 
+                     activeTab === "floorplan" ? "Floor Plan" : "Vendors"}
+                  </h2>
+                  {activeTab === "rfp" && (
+                    <div className="ml-auto">
+                      <Button className="bg-purple-600 hover:bg-purple-700">Edit</Button>
+                    </div>
+                  )}
+                </div>
+                <hr className="border-gray-200" />
+              </div>
+
               {activeTab === "rfp" && <RfpContent />}
               {activeTab === "floorplan" && (
                 <div className="p-4 md:p-6">

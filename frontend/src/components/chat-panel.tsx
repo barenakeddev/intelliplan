@@ -11,7 +11,11 @@ export interface ChatMessage {
   content: string;
 }
 
-export default function ChatPanel() {
+export interface ChatPanelProps {
+  className?: string;
+}
+
+export default function ChatPanel({ className = "" }: ChatPanelProps) {
   const { setRfpData, isLoading, setIsLoading, setGeneratedRfp } = useRfp();
   const [message, setMessage] = useState("");
   const [showConversationList, setShowConversationList] = useState(true);
@@ -170,12 +174,13 @@ export default function ChatPanel() {
       <ConversationList 
         onSelectConversation={handleSelectConversation}
         onNewConversation={handleNewConversation}
+        className={className}
       />
     );
   }
 
   return (
-    <div className="w-full md:w-[450px] flex flex-col bg-gray-50 border-r transition-all duration-300 ease-in-out">
+    <div className={`w-full md:w-[450px] flex flex-col bg-gray-50 border-r transition-all duration-300 ease-in-out ${className}`}>
       {/* Chat Header */}
       <div className="p-4 border-b flex items-center">
         <Button variant="ghost" size="icon" className="mr-2" onClick={handleBackToConversations}>

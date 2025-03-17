@@ -12,9 +12,14 @@ export interface Conversation {
 interface ConversationListProps {
   onSelectConversation: (id: string) => void;
   onNewConversation: () => void;
+  className?: string;
 }
 
-export default function ConversationList({ onSelectConversation, onNewConversation }: ConversationListProps) {
+export default function ConversationList({ 
+  onSelectConversation, 
+  onNewConversation,
+  className = ""
+}: ConversationListProps) {
   // Mock data for conversations - would typically come from API
   const [conversations, setConversations] = useState<Conversation[]>([
     {
@@ -38,7 +43,7 @@ export default function ConversationList({ onSelectConversation, onNewConversati
   ]);
 
   return (
-    <div className="w-full md:w-[450px] flex flex-col bg-gray-50 border-r transition-all duration-300 ease-in-out">
+    <div className={`w-full md:w-[450px] flex flex-col bg-gray-50 border-r transition-all duration-300 ease-in-out ${className}`}>
       {/* Conversation List Header */}
       <div className="p-4 border-b flex items-center">
         <h2 className="text-lg font-medium flex-1 text-center">Conversations</h2>

@@ -1,5 +1,3 @@
-import { Button } from "./ui/button";
-import { ChevronLeft } from "lucide-react";
 import { useRfp } from "../context/rfp-context";
 
 export default function RfpContent() {
@@ -7,17 +5,6 @@ export default function RfpContent() {
 
   return (
     <div className="p-4 md:p-6">
-      {/* RFP Header */}
-      <div className="flex justify-between items-center mb-3">
-        <div className="flex items-center">
-          <Button variant="ghost" size="icon" className="mr-2 md:hidden">
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <h2 className="text-lg font-medium">Request for Proposal</h2>
-        </div>
-        <Button className="bg-purple-600 hover:bg-purple-700">Edit</Button>
-      </div>
-
       {/* RFP Content */}
       <div className="w-full bg-white p-6 rounded-lg">
         <h1 className="text-2xl font-bold text-center mb-6">Request for Proposal (RFP)</h1>
