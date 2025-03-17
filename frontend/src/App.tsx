@@ -1,34 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { getHealth, getTestStatus, generateRFP } from './services/api';
+import { getHealth, getTestStatus } from './services/api';
 import './App.css';
+import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs';
+import { Button } from './components/ui/button';
+import { UserCircle } from 'lucide-react';
+import ChatPanel from './components/chat-panel';
+import RfpContent from './components/rfp-content';
+import { ThemeProvider } from './components/theme-provider';
+import { RfpProvider } from './context/rfp-context';
 
 function App() {
   const [health, setHealth] = useState<string>('');
   const [testStatus, setTestStatus] = useState<boolean | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [prompt, setPrompt] = useState<string>('');
-  const [generatedRFP, setGeneratedRFP] = useState<string>('');
-  const [rfpLoading, setRfpLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<string>("rfp");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        const healthData = await getHealth();
+        setHealth(healthData);
+
+        const testStatusData = await getTestStatus();
+        setTestStatus(testStatusData.success);
         
-        // Fetch health status
-        const healthStatus = await getHealth();
-        setHealth(healthStatus);
-        
-        // Fetch test status
-        const testResponse = await getTestStatus();
-        if (testResponse.success && testResponse.data) {
-          setTestStatus(testResponse.data.status);
-        }
+        setLoading(false);
       } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Failed to load data. Please try again later.');
-      } finally {
+        setError('Failed to connect to backend');
         setLoading(false);
       }
     };
@@ -36,70 +36,78 @@ function App() {
     fetchData();
   }, []);
 
-  const handleGenerateRFP = async () => {
-    if (!prompt.trim()) {
-      setError('Please enter a prompt for RFP generation.');
-      return;
-    }
-
-    setRfpLoading(true);
-    setError(null);
-    
-    try {
-      const rfpText = await generateRFP(prompt);
-      setGeneratedRFP(rfpText);
-    } catch (err) {
-      console.error('Error generating RFP:', err);
-      setError('Failed to generate RFP. Please try again later.');
-    } finally {
-      setRfpLoading(false);
-    }
-  };
-
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>IntelliPlan</h1>
-        {loading ? (
-          <p>Loading...</p>
-        ) : error ? (
-          <p className="error">{error}</p>
-        ) : (
-          <>
-            <p>Backend Health: {health}</p>
-            <p>Database Connection: {testStatus !== null ? (testStatus ? 'Connected' : 'Disconnected') : 'Unknown'}</p>
-          </>
-        )}
-      </header>
+    <ThemeProvider defaultTheme="light">
+      <RfpProvider>
+        <div className="flex flex-col h-screen">
+          {/* Top Navigation Bar */}
+          <header className="border-b">
+            <div className="flex items-center w-full px-6 py-3">
+              <h1 className="text-2xl font-bold text-purple-600">IntelliPlan</h1>
 
-      <main className="App-main">
-        <div className="rfp-section">
-          <h2>RFP Generator</h2>
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Enter your RFP prompt here..."
-            rows={4}
-            cols={50}
-          />
-          <button 
-            onClick={handleGenerateRFP} 
-            disabled={rfpLoading || !prompt.trim()}
-          >
-            {rfpLoading ? 'Generating...' : 'Generate RFP'}
-          </button>
+              <div className="flex-1 flex justify-center">
+                <Tabs 
+                  defaultValue="rfp" 
+                  className="max-w-md"
+                  value={activeTab}
+                  onValueChange={setActiveTab}
+                >
+                  <TabsList className="grid grid-cols-3">
+                    <TabsTrigger value="rfp" className="data-[state=active]:text-purple-600">
+                      RFP
+                    </TabsTrigger>
+                    <TabsTrigger value="floorplan">Floorplan</TabsTrigger>
+                    <TabsTrigger value="vendors">Vendors</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
 
-          {error && <p className="error">{error}</p>}
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <UserCircle className="h-6 w-6" />
+              </Button>
+            </div>
+          </header>
 
-          {generatedRFP && (
-            <div className="rfp-result">
-              <h3>Generated RFP:</h3>
-              <pre>{generatedRFP}</pre>
+          {/* Main Content Area - Split Panel */}
+          <div className="flex flex-1 overflow-hidden">
+            {/* Left Panel - Chat */}
+            <ChatPanel />
+
+            {/* Right Panel - Content */}
+            <div className="flex-1 overflow-y-auto border-l">
+              {activeTab === "rfp" && <RfpContent />}
+              {activeTab === "floorplan" && (
+                <div className="p-4 md:p-6">
+                  <h2 className="text-xl font-medium">Floor Plan (Coming Soon)</h2>
+                </div>
+              )}
+              {activeTab === "vendors" && (
+                <div className="p-4 md:p-6">
+                  <h2 className="text-xl font-medium">Vendors (Coming Soon)</h2>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Debug Panel - Normally would be hidden in production */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="border-t p-4 bg-gray-100 hidden">
+              <h3 className="text-sm font-semibold mb-2">Debug Information</h3>
+              {loading ? (
+                <p>Loading...</p>
+              ) : error ? (
+                <p className="text-red-500">{error}</p>
+              ) : (
+                <div className="text-xs">
+                  <p>Backend Health: {health}</p>
+                  <p>Database Connection: {testStatus !== null ? (testStatus ? 'Connected' : 'Disconnected') : 'Unknown'}</p>
+                </div>
+              )}
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </RfpProvider>
+    </ThemeProvider>
   );
 }
 
