@@ -175,7 +175,7 @@ export default function ChatPanel() {
   }
 
   return (
-    <div className="w-full md:w-[450px] flex flex-col bg-gray-50 border-r">
+    <div className="w-full md:w-[450px] flex flex-col bg-gray-50 border-r transition-all duration-300 ease-in-out">
       {/* Chat Header */}
       <div className="p-4 border-b flex items-center">
         <Button variant="ghost" size="icon" className="mr-2" onClick={handleBackToConversations}>

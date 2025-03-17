@@ -8,7 +8,7 @@ export default function RfpContent() {
   return (
     <div className="p-4 md:p-6">
       {/* RFP Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-3">
         <div className="flex items-center">
           <Button variant="ghost" size="icon" className="mr-2 md:hidden">
             <ChevronLeft className="h-4 w-4" />
@@ -18,60 +18,84 @@ export default function RfpContent() {
         <Button className="bg-purple-600 hover:bg-purple-700">Edit</Button>
       </div>
 
-      {/* RFP Title */}
-      <h1 className="text-2xl font-bold text-center mb-6">Request for Proposal (RFP)</h1>
-      <hr className="mb-8" />
-
-      {/* RFP Content Sections */}
-      <div className="space-y-8">
-        {/* Section 1: Event Overview */}
-        <section>
-          <h3 className="text-xl font-semibold mb-4">Section 1: Event Overview</h3>
-          <div className="space-y-3">
-            <div>
-              <p className="font-medium">Event Name:</p>
-              <p className="text-gray-600">{rfpData.eventName}</p>
-            </div>
-            <div>
-              <p className="font-medium">Event Type:</p>
-              <p className="text-gray-600">{rfpData.eventType}</p>
-            </div>
-            <div>
-              <p className="font-medium">Event Description:</p>
-              <p className="text-gray-600">
-                {rfpData.eventDescription}
-              </p>
-            </div>
+      {/* RFP Content */}
+      <div className="w-full bg-white p-6 rounded-lg">
+        <h1 className="text-2xl font-bold text-center mb-6">Request for Proposal (RFP)</h1>
+        <hr className="mb-6" />
+        
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <p><strong>Event Name:</strong> {rfpData.eventName}</p>
+            <p><strong>Preferred Date:</strong> {rfpData.preferredDate}</p>
+            <p><strong>Alternative Date:</strong> {rfpData.alternativeDate}</p>
+            <p><strong>Attendee Profile:</strong> {rfpData.attendeeProfile}</p>
           </div>
-        </section>
 
-        {/* Section 2: Event Dates & Flexibility */}
-        <section>
-          <h3 className="text-xl font-semibold mb-4">Section 2: Event Dates & Flexibility</h3>
-          <div className="space-y-3">
-            <div>
-              <p className="font-medium">Preferred Dates:</p>
-              <p className="text-gray-600">{rfpData.preferredDates}</p>
-            </div>
-            <div>
-              <p className="font-medium">Alternative Dates:</p>
-              <p className="text-gray-600">{rfpData.alternativeDates}</p>
-            </div>
-            <div>
-              <p className="font-medium">Event Duration:</p>
-              <p className="text-gray-600">{rfpData.eventDuration}</p>
-            </div>
-          </div>
-        </section>
-
-        {/* Section 3: Attendance */}
-        <section>
-          <h3 className="text-xl font-semibold mb-4">Section 3: Attendance</h3>
           <div>
-            <p className="font-medium">Estimated Number of Attendees:</p>
-            <p className="text-gray-600">{rfpData.attendees}</p>
+            <h3 className="text-lg font-semibold mb-2">General Information</h3>
+            <p>{rfpData.generalInformation}</p>
           </div>
-        </section>
+
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Concessions (if possible):</h3>
+            <ul className="list-disc pl-6 space-y-1">
+              {rfpData.concessions.map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold mb-2">AV Needs:</h3>
+            <ul className="list-disc pl-6 space-y-1">
+              {rfpData.avNeeds.map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Food & Beverage</h3>
+            <ul className="list-disc pl-6 space-y-1">
+              {rfpData.foodAndBeverage.map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Guest Rooms</h3>
+            <ul className="list-disc pl-6 space-y-1">
+              {rfpData.guestRooms.map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Typical Program Sample Flow:</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-100 border-b">
+                    <th className="px-4 py-2 text-left">Approximate Time</th>
+                    <th className="px-4 py-2 text-left">Function</th>
+                    <th className="px-4 py-2 text-left">Attendance/Set</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rfpData.programFlow.map((item, index) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="border px-4 py-2">{item.time}</td>
+                      <td className="border px-4 py-2">{item.function}</td>
+                      <td className="border px-4 py-2">{item.attendanceSet}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

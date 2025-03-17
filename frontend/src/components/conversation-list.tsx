@@ -38,7 +38,7 @@ export default function ConversationList({ onSelectConversation, onNewConversati
   ]);
 
   return (
-    <div className="w-full md:w-[450px] flex flex-col bg-gray-50 border-r">
+    <div className="w-full md:w-[450px] flex flex-col bg-gray-50 border-r transition-all duration-300 ease-in-out">
       {/* Conversation List Header */}
       <div className="p-4 border-b flex items-center">
         <h2 className="text-lg font-medium flex-1 text-center">Conversations</h2>

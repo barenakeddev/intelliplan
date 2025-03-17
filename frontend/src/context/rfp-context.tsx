@@ -2,12 +2,19 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 
 interface RfpData {
   eventName: string;
-  eventType: string;
-  eventDescription: string;
-  preferredDates: string;
-  alternativeDates: string;
-  eventDuration: string;
-  attendees: number;
+  preferredDate: string;
+  alternativeDate: string;
+  attendeeProfile: string;
+  generalInformation: string;
+  concessions: string[];
+  avNeeds: string[];
+  foodAndBeverage: string[];
+  guestRooms: string[];
+  programFlow: {
+    time: string;
+    function: string;
+    attendanceSet: string;
+  }[];
 }
 
 interface RfpContextType {
@@ -20,13 +27,36 @@ interface RfpContextType {
 }
 
 const initialRfpData: RfpData = {
-  eventName: "[Insert Event Name]",
-  eventType: "Corporate Conference",
-  eventDescription: "A corporate conference for 200 attendees. The event will include presentations, workshops, networking opportunities, and catered meals.",
-  preferredDates: "[Insert Preferred Dates]",
-  alternativeDates: "[Insert Alternative Dates]",
-  eventDuration: "[Insert Duration]",
-  attendees: 200,
+  eventName: "MPI New England — Professional Development",
+  preferredDate: "February 17 – 18, 2026",
+  alternativeDate: "February 24 – 25, 2026",
+  attendeeProfile: "100–150 estimated attendance",
+  generalInformation: "MPINE has traditionally held meetings on the third Wednesday or Thursday of the month; however, a creative proposal offering a different date or times of day will be considered and are encouraged.",
+  concessions: [
+    "MPINE asks for complimentary meal room.",
+    "Staff rate at staff rooms.",
+    "Complimentary parking (must).",
+    "Wave patch fee for external AV company."
+  ],
+  avNeeds: [
+    "Flipcharts, screens, wireless lavaliere microphones, lecterns, LCD projector, and Internet access."
+  ],
+  foodAndBeverage: [
+    "Breakfast, lunch, and dinner.",
+    "Cash bar for the dinner."
+  ],
+  guestRooms: [
+    "20 staff single occupancy rooms.",
+    "10 double occupancy rooms.",
+    "20 ROH rooms."
+  ],
+  programFlow: [
+    { time: "5:30pm – 7pm", function: "Registration", attendanceSet: "Two 8' tables with 4 chairs" },
+    { time: "6:00pm – 7:00pm", function: "Educational Program", attendanceSet: "Frequently 100–150 people at round tables or theatre style" },
+    { time: "7:00pm – 8:30pm", function: "Reception and networking", attendanceSet: "A mix of high-top cocktail and tables with seating" },
+    { time: "8pm – 8:30pm", function: "Reception/Property tours", attendanceSet: "TBD" },
+    { time: "9:00pm", function: "Load out, Program ends", attendanceSet: "TBD" }
+  ]
 };
 
 const RfpContext = createContext<RfpContextType | undefined>(undefined);
