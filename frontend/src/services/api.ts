@@ -38,9 +38,43 @@ export const sendMessage = async (conversationId: string, message: string): Prom
   return response.data.message;
 };
 
-export const generateFinalRFP = async (conversationId: string): Promise<string> => {
+export interface RfpResponse {
+  text: string;
+  data?: Record<string, any>;
+}
+
+export const generateFinalRFP = async (conversationId: string): Promise<RfpResponse> => {
   const response = await api.post('/rfp/generate', { conversationId });
-  return response.data.rfp;
+  
+  // Check if the response is a JSON string that needs parsing
+  let result: RfpResponse;
+  try {
+    if (typeof response.data.rfp === 'string') {
+      try {
+        result = JSON.parse(response.data.rfp);
+      } catch {
+        // If it can't be parsed as JSON, assume it's just the text
+        result = {
+          text: response.data.rfp,
+          data: {}
+        };
+      }
+    } else {
+      // Handle case where it might already be parsed
+      result = {
+        text: response.data.rfp,
+        data: {}
+      };
+    }
+  } catch (error) {
+    // Fallback if parsing fails
+    result = {
+      text: typeof response.data.rfp === 'string' ? response.data.rfp : 'Failed to generate RFP',
+      data: {}
+    };
+  }
+  
+  return result;
 };
 
 export default api; 
