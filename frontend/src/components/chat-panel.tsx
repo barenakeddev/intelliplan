@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ArrowLeft, Send } from "lucide-react";
 import { useRfp } from "../context/rfp-context";
-import { generateRFP } from "../services/api";
+import { sendMessage, startConversation, generateFinalRFP } from "../services/api";
 import ConversationList, { Conversation } from "./conversation-list";
 
 export interface ChatMessage {
@@ -21,14 +21,39 @@ export default function ChatPanel({ className = "" }: ChatPanelProps) {
   const [showConversationList, setShowConversationList] = useState(true);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [currentConversationName, setCurrentConversationName] = useState<string>("New Event");
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
-    { role: "user", content: "I need to plan a corporate conference for 200 people" },
-    {
-      role: "assistant",
-      content:
-        "Great! I'll help you plan a corporate conference for 200 people. Let's start gathering some information to create an RFP (Request for Proposal) for your event.",
-    },
-  ]);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+
+  // Start a new conversation when component loads
+  useEffect(() => {
+    if (!showConversationList && !currentConversationId && chatHistory.length === 0) {
+      startNewConversation();
+    }
+  }, [showConversationList]);
+
+  // Start a new conversation with the API
+  const startNewConversation = async () => {
+    try {
+      setIsLoading(true);
+      const { conversationId, message: initialMessage } = await startConversation();
+      setCurrentConversationId(conversationId);
+      setChatHistory([
+        {
+          role: "assistant",
+          content: initialMessage,
+        },
+      ]);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error starting conversation:", error);
+      setChatHistory([
+        {
+          role: "assistant",
+          content: "Hello! I'm here to help you create an RFP for your event. What type of event are you planning?",
+        },
+      ]);
+      setIsLoading(false);
+    }
+  };
 
   // Mock data for getting conversation details
   const getConversationById = (id: string): Conversation | undefined => {
@@ -55,7 +80,7 @@ export default function ChatPanel({ className = "" }: ChatPanelProps) {
   };
 
   const handleSendMessage = async () => {
-    if (message.trim()) {
+    if (message.trim() && currentConversationId) {
       // Add user message to chat history
       setChatHistory([...chatHistory, { role: "user", content: message }]);
       const userMessage = message;
@@ -71,39 +96,57 @@ export default function ChatPanel({ className = "" }: ChatPanelProps) {
           { role: "assistant", content: "Generating response..." },
         ]);
 
-        // In a real application, we would call an API to process the user's message 
-        // and potentially generate an RFP. For now, we'll use a mock response.
-        setTimeout(() => {
-          // Remove loading message
-          setChatHistory((prev) => prev.slice(0, -1));
-          
-          // Add assistant response
-          setChatHistory((prev) => [
-            ...prev,
-            {
-              role: "assistant",
-              content:
-                "I'll help you plan your corporate conference. Let's start by creating an RFP (Request for Proposal). What dates are you considering for the event?",
-            },
-          ]);
+        // Call the API to get a response
+        const response = await sendMessage(currentConversationId, userMessage);
+        
+        // Remove loading message
+        setChatHistory((prev) => prev.slice(0, -1));
+        
+        // Add assistant response
+        setChatHistory((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: response,
+          },
+        ]);
 
-          // For demo purposes, if the message contains "generate RFP", 
-          // we'll call the RFP generation API
-          if (userMessage.toLowerCase().includes("generate rfp")) {
-            handleGenerateRFP(userMessage);
-          }
+        // If we've collected enough information, update the event name
+        if (
+          userMessage.toLowerCase().includes("event name") ||
+          userMessage.toLowerCase().includes("name") && chatHistory.length < 5
+        ) {
+          // Extract a name from the user message
+          setCurrentConversationName(userMessage.replace(/event name|name/i, "").trim() || "New Event");
+        }
 
-          setIsLoading(false);
-        }, 1000);
+        setIsLoading(false);
       } catch (error) {
         console.error("Error processing message:", error);
+        
+        // Remove loading message
+        setChatHistory((prev) => prev.slice(0, -1));
+        
+        // Add error message
+        setChatHistory((prev) => [
+          ...prev,
+          { 
+            role: "assistant", 
+            content: "I'm sorry, I encountered an error. Please try again." 
+          },
+        ]);
+        
         setIsLoading(false);
       }
     }
   };
 
-  const handleGenerateRFP = async (prompt: string) => {
+  const handleGenerateRFP = async () => {
     try {
+      if (!currentConversationId) {
+        throw new Error("No active conversation");
+      }
+      
       setIsLoading(true);
       
       // Add a message to indicate we're generating the RFP
@@ -112,18 +155,18 @@ export default function ChatPanel({ className = "" }: ChatPanelProps) {
         { role: "assistant", content: "Generating your RFP document..." },
       ]);
 
-      // Call the API to generate the RFP
-      const rfpText = await generateRFP(prompt);
+      // Call the API to generate the final RFP from the conversation
+      const rfpText = await generateFinalRFP(currentConversationId);
       setGeneratedRfp(rfpText);
 
-      // Update the RFP data
+      // Update the RFP data with information from the conversation
       setRfpData(prev => ({
         ...prev,
-        eventName: "Corporate Conference 2024",
-        preferredDates: "October 15-18, 2024",
-        alternativeDates: "November 5-8, 2024",
-        eventDuration: "3 days",
+        eventName: currentConversationName,
       }));
+
+      // Remove the generating message
+      setChatHistory((prev) => prev.slice(0, -1));
 
       // Add confirmation message
       setChatHistory((prev) => [
@@ -137,6 +180,10 @@ export default function ChatPanel({ className = "" }: ChatPanelProps) {
       setIsLoading(false);
     } catch (error) {
       console.error("Error generating RFP:", error);
+      
+      // Remove the generating message
+      setChatHistory((prev) => prev.slice(0, -1));
+      
       setChatHistory((prev) => [
         ...prev,
         { 
@@ -163,6 +210,7 @@ export default function ChatPanel({ className = "" }: ChatPanelProps) {
     setCurrentConversationName("New Event");
     setChatHistory([]);
     setShowConversationList(false);
+    // The useEffect will trigger startNewConversation
   };
 
   const handleBackToConversations = () => {
@@ -206,8 +254,17 @@ export default function ChatPanel({ className = "" }: ChatPanelProps) {
         ))}
       </div>
 
-      {/* Chat Input */}
+      {/* Chat Input and Generate RFP Button */}
       <div className="p-4 border-t">
+        {chatHistory.length > 5 && (
+          <Button
+            onClick={handleGenerateRFP}
+            className="w-full mb-3 bg-green-600 hover:bg-green-700 text-white"
+            disabled={isLoading}
+          >
+            Generate RFP Document
+          </Button>
+        )}
         <div className="flex items-center space-x-2">
           <Input
             value={message}

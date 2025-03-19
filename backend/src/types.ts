@@ -11,4 +11,19 @@ export interface RfpRequest extends Request {
 export interface RfpResponse {
   success: boolean;
   rfp: string;
+}
+
+// Interface for conversation request
+export interface ConversationRequest extends Request {
+  body: {
+    conversationId?: string;
+  };
+}
+
+// Interface for message request
+export interface MessageRequest extends Request {
+  body: {
+    conversationId: string;
+    message: string;
+  };
 } 
