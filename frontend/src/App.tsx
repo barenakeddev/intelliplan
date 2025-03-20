@@ -3,11 +3,39 @@ import { getHealth, getTestStatus } from './services/api';
 import './App.css';
 import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
-import { UserCircle, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { UserCircle, PanelLeftClose, PanelLeftOpen, FileText, Grid, Store } from 'lucide-react';
 import ChatPanel from './components/chat-panel';
 import RfpContent from './components/rfp-content';
 import { ThemeProvider } from './components/theme-provider';
 import { RfpProvider } from './context/rfp-context';
+
+// Helper function to get the icon for each tab
+const getTabIcon = (tab: string) => {
+  switch (tab) {
+    case 'rfp':
+      return <FileText className="h-5 w-5" />;
+    case 'floorplan':
+      return <Grid className="h-5 w-5" />;
+    case 'vendors':
+      return <Store className="h-5 w-5" />;
+    default:
+      return null;
+  }
+};
+
+// Helper function to get the title for each tab
+const getTabTitle = (tab: string) => {
+  switch (tab) {
+    case 'rfp':
+      return 'Request for Proposal';
+    case 'floorplan':
+      return 'Floor Plan';
+    case 'vendors':
+      return 'Vendors';
+    default:
+      return '';
+  }
+};
 
 function App() {
   const [health, setHealth] = useState<string>('');
@@ -77,20 +105,22 @@ function App() {
           <div className="flex flex-1 overflow-hidden relative">
             {/* Left Panel - Chat */}
             <ChatPanel 
-              className={`flex-shrink-0 transition-all duration-300 ease-in-out ${
-                isChatPanelVisible ? "translate-x-0" : "-translate-x-full absolute left-0 h-full"
+              className={`transition-all duration-300 ease-in-out ${
+                isChatPanelVisible 
+                  ? "w-[30%]" 
+                  : "w-0 -translate-x-full opacity-0 pointer-events-none absolute left-0 h-full overflow-hidden"
               }`}
             />
 
             {/* Right Panel - Content */}
             <div
-              className={`flex-1 overflow-y-auto transition-all duration-300 ease-in-out ${
-                isChatPanelVisible ? "border-l" : ""
+              className={`overflow-y-auto transition-all duration-300 ease-in-out ${
+                isChatPanelVisible ? "w-[70%] border-l" : "w-full"
               }`}
             >
               {/* Toggle Button */}
               <div className="sticky top-0 z-10 bg-white">
-                <div className="flex items-center p-4">
+                <div className="flex items-center p-3">
                   <Button
                     onClick={toggleChatPanel}
                     variant="ghost"
@@ -100,30 +130,29 @@ function App() {
                   >
                     {isChatPanelVisible ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
                   </Button>
-                  <h2 className="text-lg font-medium">
-                    {activeTab === "rfp" ? "Request for Proposal" : 
-                     activeTab === "floorplan" ? "Floor Plan" : "Vendors"}
-                  </h2>
-                  {activeTab === "rfp" && (
-                    <div className="ml-auto">
-                      <Button className="bg-purple-600 hover:bg-purple-700">Edit</Button>
+                  
+                  {/* Content Title */}
+                  <div className="flex items-center">
+                    <div className="text-purple-600 mr-2">
+                      {getTabIcon(activeTab)}
                     </div>
+                    <h2 className="text-xl font-semibold">{getTabTitle(activeTab)}</h2>
+                  </div>
+
+                  {activeTab === "rfp" && (
+                    <Button variant="default" className="ml-auto bg-purple-600 hover:bg-purple-700">
+                      Edit
+                    </Button>
                   )}
                 </div>
-                <hr className="border-gray-200" />
               </div>
 
-              {activeTab === "rfp" && <RfpContent />}
-              {activeTab === "floorplan" && (
-                <div className="p-4 md:p-6">
-                  <h2 className="text-xl font-medium">Floor Plan (Coming Soon)</h2>
-                </div>
-              )}
-              {activeTab === "vendors" && (
-                <div className="p-4 md:p-6">
-                  <h2 className="text-xl font-medium">Vendors (Coming Soon)</h2>
-                </div>
-              )}
+              {/* Tab Content */}
+              <div className="px-3">
+                {activeTab === "rfp" && <RfpContent />}
+                {activeTab === "floorplan" && <div>Floorplan Content</div>}
+                {activeTab === "vendors" && <div>Vendors Content</div>}
+              </div>
             </div>
           </div>
 

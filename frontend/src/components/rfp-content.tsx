@@ -1,8 +1,38 @@
 import { useRfp } from "../context/rfp-context";
 import { useState, useEffect } from "react";
 
+// Define a component for the confidence indicator
+const ConfidenceIndicator = ({ confidence = 0 }: { confidence?: number }) => {
+  // Default to gray if confidence is not provided
+  if (confidence === undefined) return null;
+  
+  // Convert to percentage for display
+  const percentage = Math.round(confidence * 100);
+  
+  // Determine color based on confidence level
+  let color = "bg-gray-300"; // Default
+  if (confidence >= 0.8) {
+    color = "bg-green-500";
+  } else if (confidence >= 0.6) {
+    color = "bg-yellow-500";
+  } else if (confidence >= 0.4) {
+    color = "bg-orange-400";
+  } else {
+    color = "bg-red-500";
+  }
+  
+  return (
+    <div className="inline-flex items-center ml-2 group" title={`Confidence: ${percentage}%`}>
+      <div className={`w-2 h-2 rounded-full ${color}`}></div>
+      <span className="opacity-0 group-hover:opacity-100 absolute bg-gray-800 text-white text-xs px-2 py-1 rounded -mt-8 ml-2 transition-opacity">
+        {percentage}% confidence
+      </span>
+    </div>
+  );
+};
+
 export default function RfpContent() {
-  const { rfpData } = useRfp();
+  const { rfpData, dataConfidence } = useRfp();
   const [highlightedFields, setHighlightedFields] = useState<Record<string, boolean>>({});
   const [previousRfpData, setPreviousRfpData] = useState(rfpData);
 
@@ -50,51 +80,127 @@ export default function RfpContent() {
       : "";
   };
 
+  // Format text for proper capitalization and sentence structure
+  const formatText = (text: any): string => {
+    // Handle non-string values
+    if (text === null || text === undefined) return '';
+    
+    // Convert to string if it's not already
+    const textStr = typeof text === 'string' ? text : String(text);
+    
+    // Return empty string for empty text
+    if (textStr.length === 0) return '';
+    
+    // If the text is already capitalized or formatted properly, return as is
+    if (textStr[0] === textStr[0].toUpperCase()) {
+      return textStr;
+    }
+    
+    // Capitalize first letter and ensure it ends with proper punctuation
+    let formattedText = textStr.charAt(0).toUpperCase() + textStr.slice(1);
+    
+    // Add a period if it's a sentence and doesn't end with punctuation
+    if (formattedText.length > 10 && 
+        !formattedText.endsWith('.') && 
+        !formattedText.endsWith('!') && 
+        !formattedText.endsWith('?')) {
+      formattedText += '.';
+    }
+    
+    return formattedText;
+  };
+
   return (
-    <div className="p-4 md:p-6">
+    <div className="pb-2">
       {/* RFP Content */}
-      <div className="w-full bg-white p-6 rounded-lg">
-        <h1 className="text-2xl font-bold text-center mb-6">Request for Proposal (RFP)</h1>
+      <div className="w-full bg-white rounded-lg">
+        <h1 className="text-2xl font-bold mb-6">Request for Proposal</h1>
         <hr className="mb-6" />
         
         <div className="space-y-6">
           {/* Event Overview */}
           <div className="space-y-2">
             <h3 className="text-lg font-semibold mb-2">Event Overview</h3>
-            <p className={getHighlightClass("eventName")}><strong>Event Name:</strong> {rfpData.eventName}</p>
-            <p className={getHighlightClass("hostOrganization")}><strong>Host Organization:</strong> {rfpData.hostOrganization}</p>
-            <p className={getHighlightClass("organizer")}><strong>Organizer:</strong> {rfpData.organizer}</p>
-            <p className={getHighlightClass("eventType")}><strong>Event Type:</strong> {rfpData.eventType}</p>
-            <p className={getHighlightClass("eventDescription")}><strong>Description:</strong> {rfpData.eventDescription}</p>
+            <p className={getHighlightClass("eventName")}>
+              <strong>Event Name:</strong> {formatText(rfpData.eventName)}
+              <ConfidenceIndicator confidence={dataConfidence?.eventName} />
+            </p>
+            <p className={getHighlightClass("hostOrganization")}>
+              <strong>Host Organization:</strong> {formatText(rfpData.hostOrganization)}
+              <ConfidenceIndicator confidence={dataConfidence?.hostOrganization} />
+            </p>
+            <p className={getHighlightClass("organizer")}>
+              <strong>Organizer:</strong> {formatText(rfpData.organizer)}
+              <ConfidenceIndicator confidence={dataConfidence?.organizer} />
+            </p>
+            <p className={getHighlightClass("eventType")}>
+              <strong>Event Type:</strong> {formatText(rfpData.eventType)}
+              <ConfidenceIndicator confidence={dataConfidence?.eventType} />
+            </p>
+            <p className={getHighlightClass("eventDescription")}>
+              <strong>Description:</strong> {formatText(rfpData.eventDescription)}
+              <ConfidenceIndicator confidence={dataConfidence?.eventDescription} />
+            </p>
           </div>
 
           {/* Event Dates & Flexibility */}
           <div className="space-y-2">
             <h3 className="text-lg font-semibold mb-2">Event Dates & Flexibility</h3>
-            <p className={getHighlightClass("preferredDate")}><strong>Preferred Date:</strong> {rfpData.preferredDate}</p>
-            <p className={getHighlightClass("alternativeDate")}><strong>Alternative Date:</strong> {rfpData.alternativeDate}</p>
-            <p className={getHighlightClass("dateFlexibility")}><strong>Flexibility:</strong> {rfpData.dateFlexibility ? "Yes" : "No"}</p>
+            <p className={getHighlightClass("preferredDate")}>
+              <strong>Preferred Date:</strong> {rfpData.preferredDate}
+              <ConfidenceIndicator confidence={dataConfidence?.preferredDate} />
+            </p>
+            <p className={getHighlightClass("alternativeDate")}>
+              <strong>Alternative Date:</strong> {rfpData.alternativeDate}
+              <ConfidenceIndicator confidence={dataConfidence?.alternativeDate} />
+            </p>
+            <p className={getHighlightClass("dateFlexibility")}>
+              <strong>Flexibility:</strong> {rfpData.dateFlexibility ? "Yes" : "No"}
+              <ConfidenceIndicator confidence={dataConfidence?.dateFlexibility} />
+            </p>
           </div>
 
           {/* Attendance */}
           <div className="space-y-2">
             <h3 className="text-lg font-semibold mb-2">Attendance</h3>
-            <p className={getHighlightClass("attendeeCount")}><strong>Estimated Number of Attendees:</strong> {rfpData.attendeeCount}</p>
+            <p className={getHighlightClass("attendeeCount")}>
+              <strong>Estimated Number of Attendees:</strong> {rfpData.attendeeCount}
+              <ConfidenceIndicator confidence={dataConfidence?.attendeeCount} />
+            </p>
           </div>
 
           {/* Venue Requirements */}
           <div className="space-y-2">
             <h3 className="text-lg font-semibold mb-2">Venue Requirements</h3>
-            <p className={getHighlightClass("roomsRequired")}><strong>Number of Rooms/Spaces Required:</strong> {rfpData.roomsRequired}</p>
-            <p className={getHighlightClass("seatingArrangement")}><strong>Seating Arrangement:</strong> {rfpData.seatingArrangement}</p>
-            <p className={getHighlightClass("accessibilityRequirements")}><strong>Accessibility Requirements:</strong> {rfpData.accessibilityRequirements}</p>
+            <p className={getHighlightClass("roomsRequired")}>
+              <strong>Number of Rooms/Spaces Required:</strong> {rfpData.roomsRequired}
+              <ConfidenceIndicator confidence={dataConfidence?.roomsRequired} />
+            </p>
+            <p className={getHighlightClass("seatingArrangement")}>
+              <strong>Seating Arrangement:</strong> {formatText(rfpData.seatingArrangement)}
+              <ConfidenceIndicator confidence={dataConfidence?.seatingArrangement} />
+            </p>
+            <p className={getHighlightClass("accessibilityRequirements")}>
+              <strong>Accessibility Requirements:</strong> {formatText(rfpData.accessibilityRequirements)}
+              <ConfidenceIndicator confidence={dataConfidence?.accessibilityRequirements} />
+            </p>
           </div>
 
           {/* Catering Requirements */}
           <div className="space-y-2">
             <h3 className="text-lg font-semibold mb-2">Catering Requirements</h3>
-            <p className={getHighlightClass("mealPeriods")}><strong>Meal Periods:</strong> {rfpData.mealPeriods}</p>
-            <p className={getHighlightClass("serviceStyle")}><strong>Service Style:</strong> {rfpData.serviceStyle}</p>
+            <p className={getHighlightClass("mealPeriods")}>
+              <strong>Meal Periods:</strong> {formatText(rfpData.mealPeriods)}
+              <ConfidenceIndicator confidence={dataConfidence?.mealPeriods} />
+            </p>
+            <p className={getHighlightClass("serviceStyle")}>
+              <strong>Service Style:</strong> {formatText(rfpData.serviceStyle)}
+              <ConfidenceIndicator confidence={dataConfidence?.serviceStyle} />
+            </p>
+            <p className={getHighlightClass("dietaryNeeds")}>
+              <strong>Dietary Needs:</strong> {formatText(rfpData.dietaryNeeds)}
+              <ConfidenceIndicator confidence={dataConfidence?.dietaryNeeds} />
+            </p>
             
             <div className={getHighlightClass("foodAndBeverage")}>
               <h4 className="text-md font-semibold mb-1">Food & Beverage Details:</h4>
@@ -111,39 +217,72 @@ export default function RfpContent() {
           {/* Audio/Visual Requirements */}
           <div className="space-y-2">
             <h3 className="text-lg font-semibold mb-2">Audio/Visual Requirements</h3>
-            <p className={getHighlightClass("technicalRequirements")}><strong>Technical Requirements:</strong> {rfpData.technicalRequirements}</p>
+            <p className={getHighlightClass("avEquipment")}>
+              <strong>Equipment Needed:</strong> {formatText(rfpData.avEquipment)}
+              <ConfidenceIndicator confidence={dataConfidence?.avEquipment} />
+            </p>
+            <p className={getHighlightClass("technicalRequirements")}>
+              <strong>Technical Requirements:</strong> {formatText(rfpData.technicalRequirements)}
+              <ConfidenceIndicator confidence={dataConfidence?.technicalRequirements} />
+            </p>
             
             <div className={getHighlightClass("avNeeds")}>
               <h4 className="text-md font-semibold mb-1">AV Needs Details:</h4>
-              {rfpData.avNeeds && rfpData.avNeeds.length > 0 ? (
+              {rfpData.avNeeds && Array.isArray(rfpData.avNeeds) && rfpData.avNeeds.length > 0 ? (
                 <ul className="list-disc pl-6 space-y-1">
                   {rfpData.avNeeds.map((item: string, index: number) => (
                     <li key={index}>{item}</li>
                   ))}
                 </ul>
-              ) : null}
+              ) : (
+                rfpData.avNeeds && !Array.isArray(rfpData.avNeeds) ? (
+                  <p>{formatText(rfpData.avNeeds as string)}</p>
+                ) : null
+              )}
             </div>
           </div>
 
-          {/* Budget Range */}
+          {/* Budget */}
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold mb-2">Budget Information</h3>
-            <p className={getHighlightClass("budgetRange")}><strong>Budget Range:</strong> {rfpData.budgetRange}</p>
+            <h3 className="text-lg font-semibold mb-2">Budget</h3>
+            <p className={getHighlightClass("budgetRange")}>
+              <strong>Budget Range:</strong> {rfpData.budgetRange}
+              <ConfidenceIndicator confidence={dataConfidence?.budgetRange} />
+            </p>
           </div>
 
           {/* Parking/Transportation */}
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold mb-2">Parking & Transportation</h3>
-            <p className={getHighlightClass("parkingNeeds")}><strong>Parking Needs:</strong> {rfpData.parkingNeeds}</p>
+            <h3 className="text-lg font-semibold mb-2">Parking/Transportation</h3>
+            <p className={getHighlightClass("parkingNeeds")}>
+              <strong>Parking Needs:</strong> {formatText(rfpData.parkingNeeds)}
+              <ConfidenceIndicator confidence={dataConfidence?.parkingNeeds} />
+            </p>
+            <p className={getHighlightClass("transportationNeeds")}>
+              <strong>Transportation Needs:</strong> {formatText(rfpData.transportationNeeds)}
+              <ConfidenceIndicator confidence={dataConfidence?.transportationNeeds} />
+            </p>
           </div>
 
           {/* Contact Information */}
           <div className="space-y-2">
             <h3 className="text-lg font-semibold mb-2">Contact Information</h3>
-            <p className={getHighlightClass("contactName")}><strong>Name:</strong> {rfpData.contactName}</p>
-            <p className={getHighlightClass("contactPhone")}><strong>Phone:</strong> {rfpData.contactPhone}</p>
-            <p className={getHighlightClass("contactEmail")}><strong>Email:</strong> {rfpData.contactEmail}</p>
-            <p className={getHighlightClass("contactAddress")}><strong>Address:</strong> {rfpData.contactAddress}</p>
+            <p className={getHighlightClass("contactName")}>
+              <strong>Name:</strong> {formatText(rfpData.contactName)}
+              <ConfidenceIndicator confidence={dataConfidence?.contactName} />
+            </p>
+            <p className={getHighlightClass("contactEmail")}>
+              <strong>Email:</strong> {rfpData.contactEmail}
+              <ConfidenceIndicator confidence={dataConfidence?.contactEmail} />
+            </p>
+            <p className={getHighlightClass("contactPhone")}>
+              <strong>Phone:</strong> {rfpData.contactPhone}
+              <ConfidenceIndicator confidence={dataConfidence?.contactPhone} />
+            </p>
+            <p className={getHighlightClass("contactAddress")}>
+              <strong>Address:</strong> {formatText(rfpData.contactAddress)}
+              <ConfidenceIndicator confidence={dataConfidence?.contactAddress} />
+            </p>
           </div>
 
           {/* Additional Information */}
@@ -165,15 +304,16 @@ export default function RfpContent() {
           </div>
 
           {/* Guest Rooms */}
-          <div className={getHighlightClass("guestRooms")}>
+          <div className="space-y-2">
             <h3 className="text-lg font-semibold mb-2">Guest Rooms</h3>
-            {rfpData.guestRooms && rfpData.guestRooms.length > 0 ? (
-              <ul className="list-disc pl-6 space-y-1">
-                {rfpData.guestRooms.map((item: string, index: number) => (
-                  <li key={index}>{item}</li>
-                ))}
-              </ul>
-            ) : null}
+            <p className={getHighlightClass("guestRooms")}>
+              <strong>Guest Room Requirements:</strong> {
+                Array.isArray(rfpData.guestRooms) 
+                  ? formatText(rfpData.guestRooms.join(', ')) 
+                  : formatText(String(rfpData.guestRooms || ''))
+              }
+              <ConfidenceIndicator confidence={dataConfidence?.guestRooms} />
+            </p>
           </div>
 
           {/* Program Flow */}

@@ -5,6 +5,10 @@ import {
   sendMessage,
   generateFinalDocument
 } from '../controllers/rfpController';
+import {
+  extractDataFromConversation,
+  getRecommendations
+} from '../controllers/extractionController';
 
 const router = express.Router();
 
@@ -15,5 +19,9 @@ router.post('/', createRFP);
 router.post('/conversation', startConversation);
 router.post('/message', sendMessage);
 router.post('/generate', generateFinalDocument);
+
+// Extraction endpoints
+router.post('/extract', extractDataFromConversation);
+router.get('/recommendations/:conversationId', getRecommendations);
 
 export default router; 

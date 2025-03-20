@@ -77,4 +77,32 @@ export const generateFinalRFP = async (conversationId: string): Promise<RfpRespo
   return result;
 };
 
+export interface ExtractionResponse {
+  data: Record<string, any>;
+  metadata: {
+    extractedAt: string;
+    confidence: Record<string, {
+      value: any;
+      confidence: number;
+      extractedAt: string;
+    }>;
+  };
+}
+
+export interface RecommendationsResponse {
+  recommendations: string[];
+}
+
+// Extract RFP data from conversation
+export const extractRfpData = async (conversationId: string): Promise<ExtractionResponse> => {
+  const response = await api.post('/rfp/extract', { conversationId });
+  return response.data;
+};
+
+// Get recommendations for data collection
+export const getDataCollectionRecommendations = async (conversationId: string): Promise<RecommendationsResponse> => {
+  const response = await api.get(`/rfp/recommendations/${conversationId}`);
+  return response.data;
+};
+
 export default api; 

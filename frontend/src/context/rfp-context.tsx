@@ -64,6 +64,8 @@ interface RfpContextType {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   generatedRfp: string;
   setGeneratedRfp: React.Dispatch<React.SetStateAction<string>>;
+  dataConfidence: Record<string, number>;
+  setDataConfidence: React.Dispatch<React.SetStateAction<Record<string, number>>>;
 }
 
 const initialRfpData: RfpData = {
@@ -125,6 +127,7 @@ export const RfpProvider = ({ children }: { children: ReactNode }) => {
   const [rfpData, setRfpData] = useState<RfpData>(initialRfpData);
   const [isLoading, setIsLoading] = useState(false);
   const [generatedRfp, setGeneratedRfp] = useState("");
+  const [dataConfidence, setDataConfidence] = useState<Record<string, number>>({});
 
   return (
     <RfpContext.Provider
@@ -135,6 +138,8 @@ export const RfpProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading,
         generatedRfp,
         setGeneratedRfp,
+        dataConfidence,
+        setDataConfidence,
       }}
     >
       {children}

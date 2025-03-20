@@ -88,3 +88,24 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* RFP highlight animations */
+@keyframes highlight-fade {
+  0% { background-color: rgba(254, 240, 138, 1); }
+  100% { background-color: rgba(254, 240, 138, 0); }
+}
+
+.highlight-field {
+  animation: highlight-fade 2s ease-out forwards;
+  border-radius: 3px;
+  padding: 2px 0;
+}
+
+.transition-colors {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.duration-2000 {
+  transition-duration: 2000ms;
+}
